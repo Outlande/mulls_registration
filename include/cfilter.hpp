@@ -11,14 +11,24 @@
 #include <pcl/filters/statistical_outlier_removal.h>
 #include <pcl/filters/normal_space.h>
 #include <pcl/filters/random_sample.h>
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/segmentation/progressive_morphological_filter.h>
+#include <pcl/ModelCoefficients.h>
+#include <pcl/sample_consensus/method_types.h>
+#include <pcl/sample_consensus/model_types.h>
+#include <pcl/surface/concave_hull.h>
+#include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/ModelCoefficients.h>
+#include <pcl/filters/project_inliers.h>
+
 
 #include <vector>
 #include <iostream>
 #include <cfloat>
 
 #include "mulls_util.h"
-#include "cprocessing.hpp"
-#include "pca.hpp"
+#include "pca.h"
 #include <glog/logging.h>
 #include <chrono>
 #include <limits>
@@ -1668,7 +1678,7 @@ class CFilter
 
 		std::chrono::steady_clock::time_point tic = std::chrono::steady_clock::now();
 
-		PrincipleComponentAnalysis<PointT> pca_estimator;
+		PrincipleComponentAnalysis pca_estimator;
 
 		typename pcl::PointCloud<PointT>::Ptr cloud_ground_full(new pcl::PointCloud<PointT>());
 
@@ -1988,14 +1998,45 @@ class CFilter
 		return 1;
 	}
 
+	bool plane_seg_ransac(const typename pcl::PointCloud<PointT>::Ptr &cloud,
+						  float threshold, int max_iter, 
+						  typename pcl::PointCloud<PointT>::Ptr &planecloud, 
+						  pcl::ModelCoefficients::Ptr &coefficients) //Ransac
+	{
+		pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+
+		// Create the segmentation object
+		pcl::SACSegmentation<PointT> sacseg;
+
+		// Optional
+		sacseg.setOptimizeCoefficients(true);
+
+		// Mandatory
+		sacseg.setModelType(pcl::SACMODEL_PLANE);
+		sacseg.setMethodType(pcl::SAC_RANSAC);
+		sacseg.setDistanceThreshold(threshold);
+		sacseg.setMaxIterations(max_iter);
+
+		sacseg.setInputCloud(cloud);
+		sacseg.segment(*inliers, *coefficients);
+
+		if (inliers->indices.size() == 0) {
+			LOG(ERROR) << "Could not estimate a planar model for the given dataset.";
+		}
+
+		for (size_t i = 0; i < inliers->indices.size(); ++i)
+		{
+			planecloud->push_back(cloud->points[inliers->indices[i]]);
+		}
+		return 1;
+	}
+
 	bool estimate_ground_normal_by_ransac(typename pcl::PointCloud<PointT>::Ptr &grid_ground,
 										  float dist_thre, int max_iter, float &nx, float &ny, float &nz)
 	{
-		CProceesing<PointT> cpro;
-
 		typename pcl::PointCloud<PointT>::Ptr grid_ground_fit(new pcl::PointCloud<PointT>);
 		pcl::ModelCoefficients::Ptr grid_coeff(new pcl::ModelCoefficients);
-		cpro.plane_seg_ransac(grid_ground, dist_thre, max_iter, grid_ground_fit, grid_coeff);
+		plane_seg_ransac(grid_ground, dist_thre, max_iter, grid_ground_fit, grid_coeff);
 
 		grid_ground.swap(grid_ground_fit);
 		nx = grid_coeff->values[0];
@@ -2037,7 +2078,7 @@ class CFilter
 			random_downsample_pcl(cloud_in, unground_down_fixed_num);
 
 		//Do PCA
-		PrincipleComponentAnalysis<PointT> pca_estimator;
+		PrincipleComponentAnalysis pca_estimator;
 		std::vector<pca_feature_t> cloud_features;
 
 		typename pcl::KdTreeFLANN<PointT>::Ptr tree(new pcl::KdTreeFLANN<PointT>);

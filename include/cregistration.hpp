@@ -34,6 +34,8 @@
 #include <pcl/registration/transformation_estimation_point_to_plane.h>
 #include <pcl/registration/ia_ransac.h>
 
+using namespace std;
+using namespace Eigen;
 #if TEASER_ON
 //teaser++ (global registration)
 #include <teaser/ply_io.h>
@@ -47,7 +49,7 @@
 
 #include "cfilter.hpp"
 #include "mulls_util.h"
-#include "pca.hpp"
+#include "pca.h"
 #include <glog/logging.h>
 
 namespace mulls
@@ -2623,7 +2625,7 @@ class CRegistration
 	//Brief: 6DOF transofrmation estimation useing SVD
 	bool coord_system_tran_6dof_svd(const std::vector<std::vector<double>> &coordinatesA, const std::vector<std::vector<double>> &coordinatesB, Matrix4d &TransMatrixA2B, int cp_number) //X Y Z roll pitch yaw
 	{
-		Matrix4d transAB2D;
+		Eigen::Matrix4d transAB2D;
 		pcl::PointCloud<PointT> Points2D_A, Points2D_B;
 		double ZAB_mean, ZAB_sum;
 		int pointnumberA, pointnumberB, pointnumbercheck;
