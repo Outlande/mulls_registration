@@ -26,8 +26,6 @@
 #include <pcl/registration/transformation_estimation_point_to_plane.h>
 #include <pcl/registration/ia_ransac.h>
 
-using namespace std;
-using namespace Eigen;
 #if TEASER_ON
 //teaser++ (global registration)
 #include <teaser/ply_io.h>
