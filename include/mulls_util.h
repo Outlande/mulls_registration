@@ -22,49 +22,6 @@
 //Select from these two (with/without intensity)
 //mind that 'curvature' here is used as ring number for spining scanner
 typedef pcl::PointXYZINormal MullsPoint;
-// struct MappingPointType {
-// 		PCL_ADD_POINT4D;
-// 		unsigned intensity;
-// 		PCL_ADD_NORMAL4D;
-// 		float auto_label;
-// 		unsigned int manual_label;
-// 		unsigned int landmark_id;
-// 		unsigned int image_label;
-// 		PCL_ADD_RGB;
-// 		inline MappingPointType() {
-// 		dyn = 0.0;
-// 		auto_label = 0.0;
-// 		manual_label = 0u;
-// 		image_label = 0u;
-// 		getVector3fMap() << 0.0, 0.0, 0.0;
-// 		getBGRVector3cMap() << 0u, 0u, 0u;
-// 		}
-// 		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-// 		} EIGEN_ALIGN16;
-	
-
-
-
-	
-
-// 		POINT_CLOUD_REGISTER_POINT_STRUCT (MappingPointType,
-// 		(float, x, x)
-// 		(float, y, y)
-// 		(float, z, z)
-// 		(unsigned, intensity, intensity)
-// 		(float, scan_id, scan_id)
-// 		(float, dyn, dyn)
-// 		(float, normal_x, normal_x)
-// 		(float, normal_y, normal_y)
-// 		(float, normal_z, normal_z)
-// 		(float, auto_label, auto_label)
-// 		(unsigned int, manual_label, manual_label)
-// 		(unsigned int, landmark_id, landmark_id)
-// 		(unsigned int, image_label, image_label)
-// 		(uint32_t, rgba, rgba)
-// 		)
-	
-
 
 typedef pcl::PointCloud<MullsPoint>::Ptr pcTPtr;
 typedef pcl::PointCloud<MullsPoint> pcT;

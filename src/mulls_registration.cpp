@@ -656,7 +656,7 @@ bool MullsRegistration::xy_normal_balanced_downsample(typename pcl::PointCloud<P
 
 	double angle_per_sector = 360.0 / sector_num;
 
-	for (int i = 0; i < cloud_in_out->points.size(); i++)
+	for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 	{
 		double ang = std::atan2(cloud_in_out->points[i].normal_y, cloud_in_out->points[i].normal_x);
 		//atan2 (x,y)  --> [-pi , pi]

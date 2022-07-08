@@ -254,7 +254,7 @@ void get_cloud_bbx(const pcl::PointCloud<MullsPoint>::Ptr &cloud, Bounds &bound)
 	double max_y = -DBL_MAX;
 	double max_z = -DBL_MAX;
 
-	for (int i = 0; i < cloud->points.size(); i++)
+	for (size_t i = 0u; i < cloud->points.size(); i++)
 	{
 		if (min_x > cloud->points[i].x)
 			min_x = cloud->points[i].x;

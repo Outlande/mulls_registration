@@ -52,8 +52,8 @@ DEFINE_int32(screen_width, 1920, "monitor horizontal resolution (pixel)");
 DEFINE_int32(screen_height, 1080, "monitor vertical resolution (pixel)");
 DEFINE_double(vis_intensity_scale, 256.0, "max intensity value of your data");
 
-void show_register_result(pcl::PointCloud<pcl::PointXYZINormal>::Ptr source_cloud,
-                          pcl::PointCloud<pcl::PointXYZINormal>::Ptr target_cloud,
+void show_register_result(pcl::PointCloud<MullsPoint>::Ptr source_cloud,
+                          pcl::PointCloud<MullsPoint>::Ptr target_cloud,
                           std::string name = "show")
 {
     // -----------------visualization--------------------------
@@ -63,13 +63,13 @@ void show_register_result(pcl::PointCloud<pcl::PointXYZINormal>::Ptr source_clou
     viewer_final->setBackgroundColor(0, 0, 0);
 
     // set target color (red)
-    pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZINormal> target_color(target_cloud, 255, 0, 0);
-    viewer_final->addPointCloud<pcl::PointXYZINormal>(target_cloud, target_color, "target cloud");
+    pcl::visualization::PointCloudColorHandlerCustom<MullsPoint> target_color(target_cloud, 255, 0, 0);
+    viewer_final->addPointCloud<MullsPoint>(target_cloud, target_color, "target cloud");
     viewer_final->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "target cloud");
 
     // set source color (blue)
-    pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZINormal> source_color(source_cloud, 0, 0, 255);
-    viewer_final->addPointCloud<pcl::PointXYZINormal>(source_cloud, source_color, "source cloud");
+    pcl::visualization::PointCloudColorHandlerCustom<MullsPoint> source_color(source_cloud, 0, 0, 255);
+    viewer_final->addPointCloud<MullsPoint>(source_cloud, source_color, "source cloud");
     viewer_final->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "source cloud");
 
     while (!viewer_final->wasStopped())

@@ -636,7 +636,7 @@ class CRegistration
 		LOG(INFO) << "RANSAC global coarse registration done in [" << time_used.count() * 1000.0 << "] ms.";
 		LOG(INFO) << "[" << final_corres->size() << "] inlier correspondences found.";
 
-		if(final_corres->size() >= min_inlier_num)
+		if(final_corres->size() >= size_t(min_inlier_num))
 		{
             Eigen::Matrix4f best_tran =ransac_rej.getBestTransformation();
 
@@ -645,7 +645,7 @@ class CRegistration
 			LOG(INFO) << "Estimated transformation by RANSAC is :\n"
 					  << tran_mat;
 
-            if (final_corres->size() >= 2 * min_inlier_num)
+            if (final_corres->size() >= 2 * size_t(min_inlier_num))
 				return (1); //reliable
 			else
 				return (0); //need check
@@ -726,7 +726,7 @@ class CRegistration
 		LOG(INFO) << "[" << inliers.size() << "] inlier correspondences found.";
 
 		//if (solution.valid && 1.0 * inliers.size() / N >= min_inlier_ratio)
-		if (solution.valid && inliers.size() >= min_inlier_num)
+		if (solution.valid && inliers.size() >= size_t(min_inlier_num))
 		{
 			tran_mat.setIdentity();
 			tran_mat.block<3, 3>(0, 0) = solution.rotation;
@@ -740,7 +740,7 @@ class CRegistration
 			// teaser::DRSCertifier certifier(cer_params);
 			// auto certification_result = certifier.certify(tran_mat,src,dst, theta);
 
-			if (inliers.size() >= 2 * min_inlier_num)
+			if (inliers.size() >= 2 * size_t(min_inlier_num))
 				return (1); //reliable
 			else
 				return (0); //need check
@@ -982,7 +982,6 @@ class CRegistration
 
 		float neccessary_corr_ratio = 1.0; //posterior unground points overlapping ratio
 
-		Eigen::Matrix4d transformationS2T = Eigen::Matrix4d::Identity();
 		Eigen::Matrix4d inv_init_guess_mat;
 		Matrix6d cofactor_matrix;
 		Matrix6d information_matrix;
@@ -1820,7 +1819,7 @@ class CRegistration
 							 bool intensity_weight_or_not = false,
 							 float residual_window_size = 0.1)
 	{
-		for (int i = 0; i < (*Corr).size(); i++)
+		for (size_t i = 0u; i < (*Corr).size(); i++)
 		{
 			int s_index, t_index;
 			s_index = (*Corr)[i].index_query;
@@ -1910,7 +1909,7 @@ class CRegistration
 							 bool intensity_weight_or_not = false,
 							 float residual_window_size = 0.1)
 	{
-		for (int i = 0; i < (*Corr).size(); i++)
+		for (size_t i = 0u; i < (*Corr).size(); i++)
 		{
 			int s_index, t_index;
 			s_index = (*Corr)[i].index_query;
@@ -2004,7 +2003,7 @@ class CRegistration
 										   bool intensity_weight_or_not = false,
 										   float residual_window_size = 0.1)
 	{
-		for (int i = 0; i < (*Corr).size(); i++)
+		for (size_t i = 0u; i < (*Corr).size(); i++)
 		{
 			int s_index, t_index;
 			s_index = (*Corr)[i].index_query;

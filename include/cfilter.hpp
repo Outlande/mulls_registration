@@ -121,7 +121,7 @@ class CFilter
 		int i;
 //unsigned int idx = 0;
 #pragma omp parallel for private(i) //Multi-thread
-		for (i = 0; i < cloud_in->points.size(); i++)
+		for (i = 0; i < int(cloud_in->points.size()); i++)
 		{
 			unsigned long long vx = floor((cloud_in->points[i].x - min_p.coeff(0)) * inverse_voxel_size);
 			unsigned long long vy = floor((cloud_in->points[i].y - min_p.coeff(1)) * inverse_voxel_size);
@@ -138,13 +138,13 @@ class CFilter
 		//Do sorting
 		std::sort(id_pairs.begin(), id_pairs.end());
 
-		int begin_id = 0;
+		size_t begin_id = 0;
 
 		while (begin_id < id_pairs.size())
 		{
 			cloud_out->push_back(cloud_in->points[id_pairs[begin_id].idx]);
 
-			int compare_id = begin_id + 1;
+			size_t compare_id = begin_id + 1;
 			while (compare_id < id_pairs.size() && id_pairs[begin_id].voxel_idx == id_pairs[compare_id].voxel_idx)
 				compare_id++;
 			begin_id = compare_id;
@@ -255,7 +255,7 @@ class CFilter
 
 		if (inverse_z)
 		{
-			for (int i = 0; i < cloud_in_out->points.size(); i++)
+			for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 				cloud_in_out->points[i].z *= (-1.0);
 			return false;
 		}
@@ -265,7 +265,7 @@ class CFilter
 
 		// 	int i;
 		// #pragma omp parallel for private(i) //Multi-thread
-		for (int i = 0; i < cloud_in_out->points.size(); i++)
+		for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 		{
 			//LOG(INFO)<<cloud_in_out->points[i].x << ","<< cloud_in_out->points[i].y << ","<< cloud_in_out->points[i].z;
 
@@ -305,7 +305,7 @@ class CFilter
 		Eigen::Vector3d d_translation;
 		estimated_quat2_1 = Eigen::Quaterniond(estimated_tran2_1.block<3, 3>(0, 0));
 
-		for (int i = 0; i < cloud_in_out->points.size(); i++)
+		for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 		{
 			ang = std::atan2(cloud_in_out->points[i].y, cloud_in_out->points[i].x);
 			//atan2 (y,x) = atan(y/x) with x and y's sign--> [-pi , pi]
@@ -364,7 +364,7 @@ class CFilter
 		double scan_duration;
 
 		// get the first and last time stamp (stored as curvature) of this scan (time stamp unit: ms)
-		for (int i = 0; i < cloud_in_out->points.size(); i++)
+		for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 		{
 			//LOG(INFO)<<cloud_in_out->points[i].curvature;
 			last_timestamp = std::max(last_timestamp, cloud_in_out->points[i].curvature);
@@ -380,7 +380,7 @@ class CFilter
 		Eigen::Vector3d d_translation;
 		estimated_quat2_1 = Eigen::Quaterniond(estimated_tran2_1.block<3, 3>(0, 0));
 
-		for (int i = 0; i < cloud_in_out->points.size(); i++)
+		for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 		{
 			s = (last_timestamp - cloud_in_out->points[i].curvature) / scan_duration; //curvature as time stamp //TODO: fix
 			//the first point (with earliest timestamp) would change the most
@@ -421,7 +421,7 @@ class CFilter
 
 		if (timestamp_availiable)
 		{
-			for (int i = 0; i < cloud_in_out->points.size(); i++)
+			for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 			{
 				last_timestamp = std::max(last_timestamp, cloud_in_out->points[i].curvature); //ms as the unit
 				first_timestamp = std::min(first_timestamp, cloud_in_out->points[i].curvature);
@@ -431,7 +431,7 @@ class CFilter
 			if (actual_scan_duration < scan_duration_ms * 0.75)
 				scan_duration_ms = actual_scan_duration;
 
-			for (int i = 0; i < cloud_in_out->points.size(); i++)
+			for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 			{
 				s = (last_timestamp - cloud_in_out->points[i].curvature) / scan_duration_ms; //curvature as time stamp
 				cloud_in_out->points[i].curvature = std::min(1.0, std::max(0.0, s));				 //curvature as the time ratio in each frame
@@ -440,7 +440,7 @@ class CFilter
 		}
 		else //using azimuth to calculate timestamp ratio
 		{
-			for (int i = 0; i < cloud_in_out->points.size(); i++)
+			for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 			{
 				ang = std::atan2(cloud_in_out->points[i].y, cloud_in_out->points[i].x);
 				//atan2 (x,y)  --> [-pi , pi]
@@ -499,7 +499,7 @@ class CFilter
 
 		omp_set_num_threads(std::min(6, omp_get_max_threads()));
 #pragma omp parallel for //Multi-thread
-		for (int i = 0; i < pc_in->points.size(); i++)
+		for (size_t i = 0u; i < pc_in->points.size(); i++)
 		{
 			if (pc_in->points[i].curvature < s_ambigous_thre || pc_in->points[i].curvature > 1.0 - s_ambigous_thre) //curvature as the timestamp
 				continue;
@@ -549,7 +549,7 @@ class CFilter
 	bool xy_normal_balanced_downsample(typename pcl::PointCloud<PointT>::Ptr &cloud_in_out,
 									   int keep_number_per_sector, int sector_num)
 	{
-		if (cloud_in_out->points.size() <= keep_number_per_sector)
+		if (cloud_in_out->points.size() <= size_t(keep_number_per_sector))
 			return false;
 
 		typename pcl::PointCloud<PointT>::Ptr cloud_temp(new pcl::PointCloud<PointT>);
@@ -565,7 +565,7 @@ class CFilter
 
 		double angle_per_sector = 360.0 / sector_num;
 
-		for (int i = 0; i < cloud_in_out->points.size(); i++)
+		for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 		{
 			double ang = std::atan2(cloud_in_out->points[i].normal_y, cloud_in_out->points[i].normal_x);
 			//atan2 (x,y)  --> [-pi , pi]
@@ -649,7 +649,7 @@ class CFilter
 				typename pcl::PointCloud<PointT>::Ptr cloud_low(new pcl::PointCloud<PointT>);
 
 				int high_point_count = 0;
-				for (int i = 0; i < cloud_in_out->points.size(); i++)
+				for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 				{
 					if (cloud_in_out->points[i].z > non_downsample_height_thre)
 					{
@@ -731,7 +731,7 @@ class CFilter
 
 		if (downsample_ratio > 1)
 		{
-			for (int i = 0; i < cloud_in_out->points.size(); i++)
+			for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 			{
 				if (i % downsample_ratio == 0)
 					cloud_temp->points.push_back(cloud_in_out->points[i]);
@@ -757,7 +757,7 @@ class CFilter
 
 		int original_pts_num = cloud_in_out->points.size();
 		typename pcl::PointCloud<PointT>::Ptr cloud_temp(new pcl::PointCloud<PointT>);
-		for (int i = 0; i < cloud_in_out->points.size(); i++)
+		for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 		{
 			if (cloud_in_out->points[i].intensity > min_i_thre * intensity_scale && cloud_in_out->points[i].intensity < min_i_thre * intensity_scale)
 				cloud_temp->points.push_back(cloud_in_out->points[i]);
@@ -780,7 +780,7 @@ class CFilter
 		int original_pts_num = cloud_in_out->points.size();
 		float incidence_angle, dot_product_result;
 		typename pcl::PointCloud<PointT>::Ptr cloud_temp(new pcl::PointCloud<PointT>);
-		for (int i = 0; i < cloud_in_out->points.size(); i++)
+		for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 		{
 			dot_product_result = std::abs(cloud_in_out->points[i].x * cloud_in_out->points[i].normal_x + cloud_in_out->points[i].y * cloud_in_out->points[i].normal_y + cloud_in_out->points[i].z * cloud_in_out->points[i].normal_z);
 			incidence_angle = std::acos(dot_product_result / (std::sqrt(cloud_in_out->points[i].x * cloud_in_out->points[i].x + cloud_in_out->points[i].y * cloud_in_out->points[i].y + cloud_in_out->points[i].z * cloud_in_out->points[i].z)));
@@ -810,7 +810,7 @@ class CFilter
 		int original_pts_num = cloud_in_out->points.size();
 		typename pcl::PointCloud<PointT>::Ptr cloud_temp(new pcl::PointCloud<PointT>);
 
-		for (int i = 0; i < cloud_in_out->points.size(); i++)
+		for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 		{
 			dis_square = cloud_in_out->points[i].x * cloud_in_out->points[i].x + cloud_in_out->points[i].y * cloud_in_out->points[i].y;
 
@@ -838,7 +838,7 @@ class CFilter
 		int original_pts_num = cloud_in_out->points.size();
 		typename pcl::PointCloud<PointT>::Ptr cloud_temp(new pcl::PointCloud<PointT>);
 
-		for (int i = 0; i < cloud_in_out->points.size(); i++)
+		for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 		{
 			dis_square = cloud_in_out->points[i].x * cloud_in_out->points[i].x + cloud_in_out->points[i].y * cloud_in_out->points[i].y;
 			if (keep_inside)
@@ -913,7 +913,7 @@ class CFilter
 						float self_radius, float ghost_radius, float z_min_thre_ghost, float z_min_thre_global)
 	{
 		typename pcl::PointCloud<PointT>::Ptr cloud_temp(new pcl::PointCloud<PointT>);
-		for (int i = 0; i < cloud_in_out->points.size(); i++)
+		for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 		{
 			float dis_square = cloud_in_out->points[i].x * cloud_in_out->points[i].x + cloud_in_out->points[i].y * cloud_in_out->points[i].y;
 			if (dis_square > self_radius * self_radius && cloud_in_out->points[i].z > z_min_thre_global)
@@ -950,7 +950,7 @@ class CFilter
 		std::chrono::steady_clock::time_point tic = std::chrono::steady_clock::now();
 		typename pcl::PointCloud<PointT>::Ptr cloud_temp(new pcl::PointCloud<PointT>);
 		int original_pts_num = cloud_in_out->points.size();
-		for (int i = 0; i < cloud_in_out->points.size(); i++)
+		for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 		{
 
 			//In the bounding box
@@ -1075,7 +1075,7 @@ class CFilter
 							  int min_point_num_neighborhood = 8)
 	//extract stable points and then encode point cloud neighborhood feature descriptor (ncc: neighborhood category context) at the same time
 	{
-		for (int i = 0; i < features.size(); ++i)
+		for (size_t i = 0; i < features.size(); ++i)
 		{
 			// float ratio1, ratio2;
 			// ratio1 = features[i].values.lamada2 / features[i].values.lamada1;
@@ -1220,7 +1220,7 @@ class CFilter
 
 			tree->radiusSearch(cloud_in_out->points[id], non_max_radius, search_indices, distances);
 
-			for (int i = 0; i < search_indices.size(); i++)
+			for (size_t i = 0u; i < search_indices.size(); i++)
 				unVisitedPtId.erase(search_indices[i]);
 
 		} while (!unVisitedPtId.empty());
@@ -1294,7 +1294,7 @@ class CFilter
 
 			tree->radiusSearch(cloud_in->points[id], non_max_radius, search_indices, distances);
 
-			for (int i = 0; i < search_indices.size(); i++)
+			for (size_t i = 0; i < search_indices.size(); i++)
 				unVisitedPtId.erase(search_indices[i]);
 
 		} while (!unVisitedPtId.empty());
@@ -2097,7 +2097,7 @@ class CFilter
 		//the radius should be larger for far away points
 		std::vector<int> index_with_feature(cloud_in->points.size(), 0); // 0 - not special points, 1 - pillar, 2 - beam, 3 - facade, 4 - roof
 
-		for (int i = 0; i < cloud_in->points.size(); i++)
+		for (size_t i = 0u; i < cloud_in->points.size(); i++)
 		{
 			if (cloud_features[i].pt_num > neigh_k_min)
 			{
@@ -2486,7 +2486,7 @@ class CFilter
 	{
 		typename pcl::PointCloud<PointT>::Ptr cloud_temp(new pcl::PointCloud<PointT>);
 
-		for (int i = 0; i < cloud_in_out->points.size(); i++)
+		for (size_t i = 0u; i < cloud_in_out->points.size(); i++)
 		{
 			if (cloud_in_out->points[i].curvature < 250 && cloud_in_out->points[i].curvature != 1) //block moving objects and outliers by semantic semantic_kitti masks
 				cloud_temp->points.push_back(cloud_in_out->points[i]);
