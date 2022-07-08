@@ -1,4 +1,4 @@
-#include "cfilter.hpp"
+#include "mulls_filter.h"
 #include "cregistration.hpp"
 #include "mulls_util.h"
 
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
     float pca_planarity_thre_down = pca_planarity_thre + 0.1;
     float keypoint_nms_radius = 0.25 * pca_neigh_r;
 
-    CFilter<MullsPoint> cfilter;
+    MullsFilter cfilter;
     CRegistration<MullsPoint> creg;
 
     CloudBlockPtr cblock_1(new CloudBlock()), cblock_2(new CloudBlock());

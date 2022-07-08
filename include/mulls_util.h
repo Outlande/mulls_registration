@@ -110,6 +110,47 @@ struct Bounds {
 	}
 };
 
+struct idpair_t {
+	int idx;
+	unsigned long long voxel_idx;
+	idpair_t() : idx(0), voxel_idx(0u) {}		
+	bool operator<(const idpair_t &pair) { return voxel_idx < pair.voxel_idx; }
+};
+
+struct grid_t {
+	std::vector<int> point_id;
+	float min_z;
+	float max_z;
+	float delta_z;
+	float min_z_x; //X of Lowest Point in the Voxel;
+	float min_z_y; //Y of Lowest Point in the Voxel;
+	float min_z_outlier_thre;
+	float neighbor_min_z;
+	int pts_count;
+	int reliable_neighbor_grid_num;
+	float mean_z;
+	float dist2station;
+
+	grid_t() {
+		min_z = min_z_x = min_z_y = neighbor_min_z = mean_z = 0.f;
+		pts_count = 0;
+		reliable_neighbor_grid_num = 0;
+		delta_z = 0.0;
+		dist2station = 0.001;
+		min_z_outlier_thre = -FLT_MAX;
+	}
+};
+
+struct simplified_voxel_t {
+	std::vector<int> point_id;
+	float max_curvature;
+	int max_curvature_point_id;
+	bool has_keypoint;
+	simplified_voxel_t() {
+		has_keypoint = false;
+	}
+};
+
 //Basic processing unit(node)
 struct CloudBlock
 {

@@ -62,8 +62,8 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # source folder
 set(SRC_LIST
-  include/cfilter.hpp
   include/cregistration.hpp
+  src/mulls_filter.cpp
   src/mulls_util.cpp
   src/pca.cpp
   )

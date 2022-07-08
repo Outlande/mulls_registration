@@ -47,7 +47,7 @@ using namespace Eigen;
 #include <limits>
 #include <time.h>
 
-#include "cfilter.hpp"
+#include "mulls_filter.h"
 #include "mulls_util.h"
 #include "pca.h"
 #include <glog/logging.h>
@@ -671,7 +671,7 @@ class CRegistration
 		//LOG(INFO) << "Begin registration";
 		std::chrono::steady_clock::time_point tic = std::chrono::steady_clock::now();
 
-		CFilter<PointT> cfilter;
+		MullsFilter cfilter;
 
 		//code that indicate the status of the registration
 		//successful registration                ---   process_code= 1
@@ -790,18 +790,7 @@ class CRegistration
 
 			//apply motion undistortion
 			inv_init_guess_mat = initial_guess.inverse();
-			if (apply_motion_undistortion_while_registration && i == 0) //do undistortion at the first iteration
-			{
-				cfilter.batch_apply_motion_compensation(registration_cons.block2->pc_ground_down, registration_cons.block2->pc_pillar_down, registration_cons.block2->pc_beam_down,
-														registration_cons.block2->pc_facade_down, registration_cons.block2->pc_roof_down, registration_cons.block2->pc_vertex,
-														pc_ground_sc, pc_pillar_sc, pc_beam_sc, pc_facade_sc, pc_roof_sc, pc_vertex_sc, inv_init_guess_mat); //for source point cloud
-
-				//apply initial_guess
-				//Transform the Source pointcloud
-				batch_transform_feature_points(pc_ground_sc, pc_pillar_sc, pc_beam_sc, pc_facade_sc, pc_roof_sc, pc_vertex_sc, initial_guess);
-			}
-			else
-				batch_transform_feature_points(pc_ground_sc, pc_pillar_sc, pc_beam_sc, pc_facade_sc, pc_roof_sc, pc_vertex_sc, TempTran);
+			batch_transform_feature_points(pc_ground_sc, pc_pillar_sc, pc_beam_sc, pc_facade_sc, pc_roof_sc, pc_vertex_sc, TempTran);
 
 			std::chrono::steady_clock::time_point toc_1_iter = std::chrono::steady_clock::now();
 			std::chrono::duration<double> update_time = std::chrono::duration_cast<std::chrono::duration<double>>(toc_1_iter - tic_iter);
@@ -991,7 +980,7 @@ class CRegistration
 		LOG(INFO) << "Begin registration";
 		std::chrono::steady_clock::time_point tic = std::chrono::steady_clock::now();
 
-		CFilter<PointT> cfilter;
+		MullsFilter cfilter;
 
 		int process_code = 0;
 		//code that indicate the status of the registration
@@ -2421,7 +2410,7 @@ class CRegistration
 							  typename pcl::PointCloud<PointT>::Ptr &pc_vertex_sc,
 							  int ground_down_rate = 4, int facade_down_rate = 2, int target_down_rate = 2)
 	{
-		CFilter<PointT> cfilter;
+		MullsFilter cfilter;
 
 		cfilter.random_downsample_pcl(pc_ground_tc, (int)(pc_ground_tc->points.size() / target_down_rate));
 		cfilter.random_downsample_pcl(pc_facade_tc, (int)(pc_facade_tc->points.size() / target_down_rate));
@@ -2450,7 +2439,7 @@ class CRegistration
 							  typename pcl::PointCloud<PointT>::Ptr &pc_vertex_sc,
 							  float bbx_pad = 1.0)
 	{
-		CFilter<PointT> cfilter;
+		MullsFilter cfilter;
 		Bounds intersection_bbx, source_init_guess_bbx_merged;
 		std::vector<Bounds> source_init_guess_bbxs(3);
 		get_cloud_bbx(pc_ground_sc, source_init_guess_bbxs[0]);
