@@ -1984,42 +1984,6 @@ class CFilter
 			LOG(INFO) << "Ground Normal Estimation done in [" << ground_normal_time.count() * 1000.0 << "] ms."
 					  << " preparation in [" << ground_seg_prepare_time.count() * 1000.0 << "] ms.";
 		}
-#if 0 //curb detection (deprecated)
-			if (detect_curb_or_not)
-			{
-				//detect curb points
-				std::vector<pca_feature_t> curb_pca_features;
-				typename pcl::PointCloud<PointT>::Ptr cloud_curb_candidate(new pcl::PointCloud<PointT>());
-				float pca_radius_curb = normal_estimation_radius;
-				int pca_k_curb = normal_estimation_neighbor_k;
-				int pca_min_pt_num = 4;
-				float curb_linearity_thre = 0.7;
-				float direction_z_max = 0.1;
-
-				detect_curbs(cloud_ground_full, cloud_curb_candidate);
-
-				pca_estimator.get_pc_pca_feature(cloud_curb_candidate, curb_pca_features, pca_radius_curb, pca_k_curb);
-				for (int i = 0; i < cloud_curb_candidate->points.size(); i++)
-				{
-					if (curb_pca_features[i].pt_num >= pca_min_pt_num &&
-						curb_pca_features[i].linear_2 > curb_linearity_thre &&
-						std::abs(curb_pca_features[i].vectors.principalDirection.z()) < direction_z_max)
-					{
-						pca_estimator.assign_normal(cloud_curb_candidate->points[i], curb_pca_features[i], false); //assign primary direction vector
-						cloud_curb->points.push_back(cloud_curb_candidate->points[i]);
-					}
-				}
-
-				pcl::PointCloud<PointT>().swap(*cloud_curb_candidate);
-				std::vector<pca_feature_t>().swap(curb_pca_features);
-
-				std::chrono::steady_clock::time_point toc_3 = std::chrono::steady_clock::now();
-
-				std::chrono::duration<double> curb_time = std::chrono::duration_cast<std::chrono::duration<double>>(toc_3 - toc_2);
-
-				LOG(INFO) << "[" << cloud_curb->points.size() << "] curb points detected in [" << curb_time.count() * 1000.0 << "] ms.";
-			}
-#endif
 		// pcl::PointCloud<PointT>().swap(*cloud_ground_full);
 		return 1;
 	}
