@@ -223,7 +223,7 @@ class PrincipleComponentAnalysis
 		double time_neighbor_search_total = 0;
 		double time_pca_total = 0;
 
-		omp_set_num_threads(min_(6, omp_get_max_threads()));
+		omp_set_num_threads(std::min(6, omp_get_max_threads()));
 #pragma omp parallel for //Multi-thread
 		for (int i = 0; i < in_cloud->points.size(); i += pca_down_rate)
 		{
@@ -241,8 +241,8 @@ class PrincipleComponentAnalysis
 				double dist = std::sqrt(in_cloud->points[i].x * in_cloud->points[i].x +
 										in_cloud->points[i].y * in_cloud->points[i].y);
 
-				neighborhood_r = max_(radius, dist / unit_dist * radius);
-				//neighborhood_k = min_(nearest_k, (int)(unit_dist / dist * nearest_k));
+				neighborhood_r = std::max(radius, static_cast<float>(dist / unit_dist * radius));
+				//neighborhood_k = std::min(nearest_k, (int)(unit_dist / dist * nearest_k));
 			}
 			//nearest_k=0 --> the knn is disabled, only the rnn is used
 			tree.radiusSearch(i, neighborhood_r, search_indices, squared_distances, neighborhood_k);
@@ -299,7 +299,7 @@ class PrincipleComponentAnalysis
 		//LOG(INFO) << "[" << in_cloud->points.size() << "] points used for PCA, pca down rate is [" << pca_down_rate << "]";
 		features.resize(in_cloud->points.size());
 
-		omp_set_num_threads(min_(6, omp_get_max_threads()));
+		omp_set_num_threads(std::min(6, omp_get_max_threads()));
 #pragma omp parallel for												 //Multi-thread
 		for (int i = 0; i < in_cloud->points.size(); i += pca_down_rate) //faster way
 		{

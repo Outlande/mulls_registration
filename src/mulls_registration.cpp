@@ -159,8 +159,8 @@ bool MullsRegistration::fast_ground_filter(const typename pcl::PointCloud<PointT
 	//sometimes, there would be some underground ghost points (noise), however, these points would be removed by scanner filter
 	//float underground_noise_thre = appro_mean_height - max_ground_height;  // this is a keyparameter.
 
-	bounds_t bounds;
-	centerpoint_t center_pt;
+	Bounds bounds;
+	CenterPoint center_pt;
 	this->get_cloud_bbx_cpt(cloud_in, bounds, center_pt); //Inherited from its parent class, use this->
 
 	//Construct Grid
@@ -234,7 +234,7 @@ bool MullsRegistration::fast_ground_filter(const typename pcl::PointCloud<PointT
 					sum_z2 += (cloud_in->points[grid[i].point_id[j]].z - mean_z) * (cloud_in->points[grid[i].point_id[j]].z - mean_z);
 				std_z = std::sqrt(sum_z2 / grid[i].pts_count);
 				grid[i].min_z_outlier_thre = mean_z - outlier_std_scale * std_z;
-				grid[i].min_z = max_(grid[i].min_z, grid[i].min_z_outlier_thre);
+				grid[i].min_z = std::max(grid[i].min_z, grid[i].min_z_outlier_thre);
 				grid[i].neighbor_min_z = grid[i].min_z;
 			}
 		}
@@ -252,7 +252,7 @@ bool MullsRegistration::fast_ground_filter(const typename pcl::PointCloud<PointT
 			{
 				for (int k = -1; k <= 1; k++) //col
 				{
-					grid[m].neighbor_min_z = min_(grid[m].neighbor_min_z, grid[m + j * col + k].min_z);
+					grid[m].neighbor_min_z = std::min(grid[m].neighbor_min_z, grid[m + j * col + k].min_z);
 					if (grid[m + j * col + k].pts_count > reliable_grid_pts_count_thre)
 						grid[m].reliable_neighbor_grid_num++;
 				}
@@ -271,7 +271,7 @@ bool MullsRegistration::fast_ground_filter(const typename pcl::PointCloud<PointT
 	}
 
 	//For each grid
-	omp_set_num_threads(min_(6, omp_get_max_threads()));
+	omp_set_num_threads(std::min(6, omp_get_max_threads()));
 #pragma omp parallel for
 	for (int i = 0; i < num_grid; i++)
 	{
@@ -704,7 +704,7 @@ void MullsRegistration::update_parameters_self_adaptive(int &gf_down_rate_ground
 	int non_ground_feature_num = facade_down_num + pillar_down_num;
 
 	if (non_ground_feature_num < non_ground_num_min_expected) {
-		gf_downsample_rate_nonground = max_(1, gf_downsample_rate_nonground - non_ground_num_min_expected / non_ground_feature_num);
+		gf_downsample_rate_nonground = std::max(1, gf_downsample_rate_nonground - non_ground_num_min_expected / non_ground_feature_num);
 	}
 }
 

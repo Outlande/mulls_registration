@@ -65,7 +65,6 @@ set(SRC_LIST
   include/cfilter.hpp
   include/cprocessing.hpp
   include/cregistration.hpp
-  include/dataio.hpp
   include/pca.hpp
   include/utility.hpp
   )

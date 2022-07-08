@@ -431,8 +431,8 @@ class CRegistration : public CloudUtility<PointT>
 		{
 			float cur_i = target_kpts->points[i].intensity;
 
-			intensity_min = min_(intensity_min, cur_i);
-			intensity_max = max_(intensity_max, cur_i);
+			intensity_min = std::min(intensity_min, cur_i);
+			intensity_max = std::max(intensity_max, cur_i);
 		}
 
 		for (int i = 0; i < target_kpts_num; i++)
@@ -488,7 +488,7 @@ class CRegistration : public CloudUtility<PointT>
 
 		std::vector<std::pair<int, float>> dist_array;
     
-		omp_set_num_threads(min_(6, omp_get_max_threads())); //TODO: speed up
+		omp_set_num_threads(std::min(6, omp_get_max_threads())); //TODO: speed up
 #pragma omp parallel for  //Multi-thread
 		for (int i = 0; i < target_kpts_num; i++)
 		{
@@ -556,7 +556,7 @@ class CRegistration : public CloudUtility<PointT>
 				}
 			}
 			std::sort(dist_array.begin(), dist_array.end(), [](const std::pair<int, float> &a, const std::pair<int, float> &b) { return a.second < b.second; });
-			corr_num = min_(corr_num, dist_array.size()); //take the k shortest distance
+			corr_num = std::min(corr_num, static_cast<int>(dist_array.size())); //take the k shortest distance
 
 			std::vector<int> count_target_kpt(target_kpts_num, 0);
 			std::vector<int> count_source_kpt(source_kpts_num, 0);
@@ -892,7 +892,7 @@ class CRegistration : public CloudUtility<PointT>
 		registration_cons.block1->clone_cloud(cloud_t_down, true); //target
 		registration_cons.block2->clone_cloud(cloud_s_down, true); //source
 
-		bounds_t intersection_bbx, source_guess_bbx;
+		Bounds intersection_bbx, source_guess_bbx;
 		bool apply_source_initial_guess = false;
 		if (!initial_guess.isIdentity(1e-6))
 		{
@@ -1354,7 +1354,7 @@ class CRegistration : public CloudUtility<PointT>
 			}
 
 			//update (decrease correspondence threshold)
-			dis_thre_ground = max_(1.0 * dis_thre_ground / dis_thre_update_rate, dis_thre_min);
+			dis_thre_ground = std::max(1.0f * dis_thre_ground / dis_thre_update_rate, dis_thre_min);
 
 			//Estimate Transformation
 
@@ -1695,12 +1695,12 @@ class CRegistration : public CloudUtility<PointT>
 							   float dis_thre_update_rate, float dis_thre_min)
 
 	{
-		dis_thre_ground = max_(1.0 * dis_thre_ground / dis_thre_update_rate, dis_thre_min);
-		dis_thre_facade = max_(1.0 * dis_thre_facade / dis_thre_update_rate, dis_thre_min);
-		dis_thre_roof = max_(1.0 * dis_thre_roof / dis_thre_update_rate, dis_thre_min);
-		dis_thre_pillar = max_(1.0 * dis_thre_pillar / dis_thre_update_rate, dis_thre_min);
-		dis_thre_beam = max_(1.0 * dis_thre_beam / dis_thre_update_rate, dis_thre_min);
-		dis_thre_vertex = max_(1.0 * dis_thre_vertex / dis_thre_update_rate, dis_thre_min);
+		dis_thre_ground = std::max(1.0f * dis_thre_ground / dis_thre_update_rate, dis_thre_min);
+		dis_thre_facade = std::max(1.0f * dis_thre_facade / dis_thre_update_rate, dis_thre_min);
+		dis_thre_roof = std::max(1.0f * dis_thre_roof / dis_thre_update_rate, dis_thre_min);
+		dis_thre_pillar = std::max(1.0f * dis_thre_pillar / dis_thre_update_rate, dis_thre_min);
+		dis_thre_beam = std::max(1.0f * dis_thre_beam / dis_thre_update_rate, dis_thre_min);
+		dis_thre_vertex = std::max(1.0f * dis_thre_vertex / dis_thre_update_rate, dis_thre_min);
 	}
 
 	//brief: entrance to mulls transformation estimation
@@ -1729,7 +1729,7 @@ class CRegistration : public CloudUtility<PointT>
 
 		if (weight_strategy[0] == '1') //x,y,z directional balanced weighting (guarantee the observability of the scene)
 		{
-			w_ground = max_(0.01, z_xy_balance_ratio * (m2 + 2 * m3 - m4) / (0.0001 + 2.0 * m1)); // x <-> y <-> z
+			w_ground = std::max(0.01, z_xy_balance_ratio * (m2 + 2 * m3 - m4) / (0.0001 + 2.0 * m1)); // x <-> y <-> z
 			w_roof = w_ground;
 			w_facade = 1.0;
 			w_pillar = 1.0;
@@ -2523,9 +2523,9 @@ class CRegistration : public CloudUtility<PointT>
 	//TODO: change the distance weight according to the iteration number (mathematic deducing)
 	float get_weight_by_dist_adaptive(float dist, int iter_num, float unit_dist = 30.0, float b_min = 0.7, float b_max = 1.3, float b_step = 0.05)
 	{
-		float b_current = min_(b_min + b_step * iter_num, b_max);
+		float b_current = std::min(b_min + b_step * iter_num, b_max);
 		float temp_weight = b_current + (1.0 - b_current) * dist / unit_dist;
-		temp_weight = max_(temp_weight, 0.01);
+		temp_weight = std::max(temp_weight, 0.01f);
 		return temp_weight;
 	}
 
@@ -2541,7 +2541,7 @@ class CRegistration : public CloudUtility<PointT>
 		float intensity_diff_ratio = std::fabs(intensity_1 - intensity_2) / intensity_scale;
 		float intensity_weight = std::exp(-1.0 * intensity_diff_ratio);
 		return intensity_weight;
-		//return (base_value + (1 - base_value) * min_(intensity_1 / intensity_2, intensity_2 / intensity_1));
+		//return (base_value + (1 - base_value) * std::min(intensity_1 / intensity_2, intensity_2 / intensity_1));
 	}
 
 	//By huber loss function
@@ -2673,7 +2673,7 @@ class CRegistration : public CloudUtility<PointT>
 		return 1;
 	}
 
-	bool get_translation_in_station_coor_sys(const Eigen::Matrix4d &T_world, const centerpoint_t &station_in_world, Eigen::Vector3d &t_station)
+	bool get_translation_in_station_coor_sys(const Eigen::Matrix4d &T_world, const CenterPoint &station_in_world, Eigen::Vector3d &t_station)
 	{
 		Eigen::Vector3d t_ws(station_in_world.x, station_in_world.y, station_in_world.z);
 		Eigen::Vector3d t_w(T_world(0, 3), T_world(1, 3), T_world(2, 3));
@@ -2745,8 +2745,8 @@ class CRegistration : public CloudUtility<PointT>
 							  float bbx_pad = 1.0)
 	{
 		CFilter<PointT> cfilter;
-		bounds_t intersection_bbx, source_init_guess_bbx_merged;
-		std::vector<bounds_t> source_init_guess_bbxs(3);
+		Bounds intersection_bbx, source_init_guess_bbx_merged;
+		std::vector<Bounds> source_init_guess_bbxs(3);
 		cfilter.get_cloud_bbx(pc_ground_sc, source_init_guess_bbxs[0]);
 		cfilter.get_cloud_bbx(pc_pillar_sc, source_init_guess_bbxs[1]);
 		cfilter.get_cloud_bbx(pc_facade_sc, source_init_guess_bbxs[2]);

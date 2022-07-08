@@ -9,3 +9,5 @@
 0       0       0       1
 
 bash scripts/test.sh
+
+# 1 删除了将intensity归一化的操作

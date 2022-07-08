@@ -1,10 +1,10 @@
 #include "cfilter.hpp"
 #include "cregistration.hpp"
 #include "utility.hpp"
-#include "dataio.hpp"
 
 #include <glog/logging.h>
 #include <gflags/gflags.h>
+#include <pcl/io/pcd_io.h>
 #include <pcl/visualization/common/common.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <boost/thread/thread.hpp>
@@ -126,17 +126,18 @@ int main(int argc, char **argv)
     float pca_planarity_thre_down = pca_planarity_thre + 0.1;
     float keypoint_nms_radius = 0.25 * pca_neigh_r;
 
-    DataIo<Point_T> dataio;
-    CFilter<Point_T> cfilter;
-    CRegistration<Point_T> creg;
+    CFilter<MullsPoint> cfilter;
+    CRegistration<MullsPoint> creg;
 
     cloudblock_Ptr cblock_1(new cloudblock_t()), cblock_2(new cloudblock_t());
     cblock_1->filename = filename1;
     cblock_2->filename = filename2;
 
-    //Import the data (5 formats are available: *.pcd)
-    dataio.read_pc_cloud_block(cblock_1, true);
-    dataio.read_pc_cloud_block(cblock_2, true);
+    // LOAD source and target cloud
+    pcl::io::loadPCDFile<MullsPoint>(cblock_1->filename, *cblock_1->pc_raw);
+    get_cloud_bbx_cpt(cblock_1->pc_raw, cblock_1->local_bound, cblock_1->local_cp);
+    pcl::io::loadPCDFile<MullsPoint>(cblock_2->filename, *cblock_2->pc_raw);
+    get_cloud_bbx_cpt(cblock_2->pc_raw, cblock_2->local_bound, cblock_2->local_cp);
 
     //Extract feature points
     cfilter.extract_semantic_pts(cblock_1, vf_downsample_resolution_target, gf_grid_resolution, gf_max_grid_height_diff,

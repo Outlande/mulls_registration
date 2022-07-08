@@ -369,8 +369,8 @@ class CFilter : public CloudUtility<PointT>
 		for (int i = 0; i < cloud_in_out->points.size(); i++)
 		{
 			//LOG(INFO)<<cloud_in_out->points[i].curvature;
-			last_timestamp = max_(last_timestamp, cloud_in_out->points[i].curvature);
-			first_timestamp = min_(first_timestamp, cloud_in_out->points[i].curvature);
+			last_timestamp = std::max(last_timestamp, cloud_in_out->points[i].curvature);
+			first_timestamp = std::min(first_timestamp, cloud_in_out->points[i].curvature);
 		}
 		scan_duration = last_timestamp - first_timestamp;
 
@@ -425,8 +425,8 @@ class CFilter : public CloudUtility<PointT>
 		{
 			for (int i = 0; i < cloud_in_out->points.size(); i++)
 			{
-				last_timestamp = max_(last_timestamp, cloud_in_out->points[i].curvature); //ms as the unit
-				first_timestamp = min_(first_timestamp, cloud_in_out->points[i].curvature);
+				last_timestamp = std::max(last_timestamp, cloud_in_out->points[i].curvature); //ms as the unit
+				first_timestamp = std::min(first_timestamp, cloud_in_out->points[i].curvature);
 			}
 			actual_scan_duration = last_timestamp - first_timestamp;
 			//LOG(INFO) << "scan duration:" << scan_duration;
@@ -436,7 +436,7 @@ class CFilter : public CloudUtility<PointT>
 			for (int i = 0; i < cloud_in_out->points.size(); i++)
 			{
 				s = (last_timestamp - cloud_in_out->points[i].curvature) / scan_duration_ms; //curvature as time stamp
-				cloud_in_out->points[i].curvature = min_(1.0, max_(0.0, s));				 //curvature as the time ratio in each frame
+				cloud_in_out->points[i].curvature = std::min(1.0, std::max(0.0, s));				 //curvature as the time ratio in each frame
 			}
 			return true;
 		}
@@ -474,7 +474,7 @@ class CFilter : public CloudUtility<PointT>
 		Eigen::Vector3d d_translation;
 		estimated_quat2_1 = Eigen::Quaterniond(Tran.block<3, 3>(0, 0));
 
-		omp_set_num_threads(min_(6, omp_get_max_threads()));
+		omp_set_num_threads(std::min(6, omp_get_max_threads()));
 #pragma omp parallel for //Multi-thread
 		for (int i = 0; i < pc_in_out->points.size(); i++)
 		{
@@ -499,7 +499,7 @@ class CFilter : public CloudUtility<PointT>
 		Eigen::Vector3d d_translation;
 		estimated_quat2_1 = Eigen::Quaterniond(Tran.block<3, 3>(0, 0));
 
-		omp_set_num_threads(min_(6, omp_get_max_threads()));
+		omp_set_num_threads(std::min(6, omp_get_max_threads()));
 #pragma omp parallel for //Multi-thread
 		for (int i = 0; i < pc_in->points.size(); i++)
 		{
@@ -664,7 +664,7 @@ class CFilter : public CloudUtility<PointT>
 
 				pcl::RandomSample<PointT> ran_sample(true); // Extract removed indices
 				ran_sample.setInputCloud(cloud_low);
-				ran_sample.setSample(max_(keep_number - high_point_count, 1));
+				ran_sample.setSample(std::max(keep_number - high_point_count, 1));
 				ran_sample.filter(*cloud_temp);
 				cloud_temp->points.insert(cloud_temp->points.end(), cloud_high->points.begin(), cloud_high->points.end());
 				cloud_temp->points.swap(cloud_in_out->points);
@@ -929,7 +929,7 @@ class CFilter : public CloudUtility<PointT>
 	}
 
 	bool bbx_filter(const typename pcl::PointCloud<PointT>::Ptr &cloud_in,
-					typename pcl::PointCloud<PointT>::Ptr &cloud_out, bounds_t &bbx)
+					typename pcl::PointCloud<PointT>::Ptr &cloud_out, Bounds &bbx)
 	{
 		for (int i = 0; i < cloud_in->points.size(); i++)
 		{
@@ -947,7 +947,7 @@ class CFilter : public CloudUtility<PointT>
 		return 1;
 	}
 
-	bool bbx_filter(const typename pcl::PointCloud<PointT>::Ptr &cloud_in_out, bounds_t &bbx, bool delete_box = false)
+	bool bbx_filter(const typename pcl::PointCloud<PointT>::Ptr &cloud_in_out, Bounds &bbx, bool delete_box = false)
 	{
 		std::chrono::steady_clock::time_point tic = std::chrono::steady_clock::now();
 		typename pcl::PointCloud<PointT>::Ptr cloud_temp(new pcl::PointCloud<PointT>);
@@ -983,7 +983,7 @@ class CFilter : public CloudUtility<PointT>
 	bool
 	active_object_filter_by_bbx(const typename pcl::PointCloud<PointT>::Ptr &cloud_in,
 								typename pcl::PointCloud<PointT>::Ptr &cloud_out,
-								std::vector<bounds_t> &active_bbxs)
+								std::vector<Bounds> &active_bbxs)
 	{
 		std::vector<bool> is_static(cloud_in->points.size(), 1);
 		for (int i = 0; i < cloud_in->points.size(); i++)
@@ -1488,8 +1488,8 @@ class CFilter : public CloudUtility<PointT>
 				// 	candidate_curb_idx = i + j; //record candidate curb point in the window
 				// }
 
-				z_min = min_(ring->points[i + j].z, z_min);
-				z_max = max_(ring->points[i + j].z, z_max);
+				z_min = std::min(ring->points[i + j].z, z_min);
+				z_max = std::max(ring->points[i + j].z, z_max);
 			}
 
 			float window_delta_z = std::fabs(z_max - z_min);
@@ -1543,8 +1543,8 @@ class CFilter : public CloudUtility<PointT>
 
 		std::chrono::steady_clock::time_point tic = std::chrono::steady_clock::now();
 
-		bounds_t bounds;
-		centerpoint_t center_pt;
+		Bounds bounds;
+		CenterPoint center_pt;
 		this->get_cloud_bbx_cpt(cloud_in, bounds, center_pt); //Inherited from its parent class, use this->
 
 		//Construct Grid
@@ -1702,8 +1702,8 @@ class CFilter : public CloudUtility<PointT>
 		//sometimes, there would be some underground ghost points (noise), however, these points would be removed by scanner filter
 		//float underground_noise_thre = appro_mean_height - max_ground_height;  // this is a keyparameter.
 
-		bounds_t bounds;
-		centerpoint_t center_pt;
+		Bounds bounds;
+		CenterPoint center_pt;
 		this->get_cloud_bbx_cpt(cloud_in, bounds, center_pt); //Inherited from its parent class, use this->
 
 		//Construct Grid
@@ -1781,7 +1781,7 @@ class CFilter : public CloudUtility<PointT>
 						sum_z2 += (cloud_in->points[grid[i].point_id[j]].z - mean_z) * (cloud_in->points[grid[i].point_id[j]].z - mean_z);
 					std_z = std::sqrt(sum_z2 / grid[i].pts_count);
 					grid[i].min_z_outlier_thre = mean_z - outlier_std_scale * std_z;
-					grid[i].min_z = max_(grid[i].min_z, grid[i].min_z_outlier_thre);
+					grid[i].min_z = std::max(grid[i].min_z, grid[i].min_z_outlier_thre);
 					grid[i].neighbor_min_z = grid[i].min_z;
 				}
 			}
@@ -1801,7 +1801,7 @@ class CFilter : public CloudUtility<PointT>
 				{
 					for (int k = -1; k <= 1; k++) //col
 					{
-						grid[m].neighbor_min_z = min_(grid[m].neighbor_min_z, grid[m + j * col + k].min_z);
+						grid[m].neighbor_min_z = std::min(grid[m].neighbor_min_z, grid[m + j * col + k].min_z);
 						if (grid[m + j * col + k].pts_count > reliable_grid_pts_count_thre)
 							grid[m].reliable_neighbor_grid_num++;
 					}
@@ -1826,7 +1826,7 @@ class CFilter : public CloudUtility<PointT>
 		std::chrono::steady_clock::time_point toc_1 = std::chrono::steady_clock::now();
 
 		//For each grid
-		omp_set_num_threads(min_(6, omp_get_max_threads()));
+		omp_set_num_threads(std::min(6, omp_get_max_threads()));
 #pragma omp parallel for
 		for (int i = 0; i < num_grid; i++)
 		{
@@ -2366,7 +2366,7 @@ class CFilter : public CloudUtility<PointT>
 # if 0  //ROI_filtering (Deprecated)
 		if (apply_roi_filtering) 
 		{
-			bounds_t roi;
+			Bounds roi;
 			roi.inf_z();
 			roi.inf_x(); //moving dirction: x
 			roi.min_y = roi_min_y;
@@ -2428,18 +2428,18 @@ class CFilter : public CloudUtility<PointT>
 		// if (ground_down_num > ground_down_num_max_expected)
 		// 	gf_down_rate_ground += ground_down_num / ground_down_num_max_expected;
 		// else if (ground_down_num < ground_down_num_min_expected)
-		// 	gf_down_rate_ground = max_(1, gf_down_rate_ground - ground_down_num_min_expected / ground_down_num);
+		// 	gf_down_rate_ground = std::max(1, gf_down_rate_ground - ground_down_num_min_expected / ground_down_num);
 
 		// if (non_ground_feature_num > non_ground_num_max_expected)
 		// {
-		// 	gf_downsample_rate_nonground = min_(6, gf_downsample_rate_nonground + non_ground_feature_num / non_ground_num_max_expected);
-		// 	//pca_neighbor_k = min_(8, pca_neighbor_k - 1);
+		// 	gf_downsample_rate_nonground = std::min(6, gf_downsample_rate_nonground + non_ground_feature_num / non_ground_num_max_expected);
+		// 	//pca_neighbor_k = std::min(8, pca_neighbor_k - 1);
 		// }
 
 		if (non_ground_feature_num < non_ground_num_min_expected)
 		{
-			gf_downsample_rate_nonground = max_(1, gf_downsample_rate_nonground - non_ground_num_min_expected / non_ground_feature_num);
-			//pca_neighbor_k = max_(20, pca_neighbor_k + 1);
+			gf_downsample_rate_nonground = std::max(1, gf_downsample_rate_nonground - non_ground_num_min_expected / non_ground_feature_num);
+			//pca_neighbor_k = std::max(20, pca_neighbor_k + 1);
 		}
 	}
 
@@ -2610,7 +2610,7 @@ class CFilter : public CloudUtility<PointT>
 
 	//Bridef: Used for the preprocessing of fine registration
 	//Use the intersection bounding box to filter the outlier points (--> to speed up)
-	bool get_cloud_pair_intersection(bounds_t &intersection_bbx,
+	bool get_cloud_pair_intersection(Bounds &intersection_bbx,
 									 typename pcl::PointCloud<PointT>::Ptr &pc_ground_tc,
 									 typename pcl::PointCloud<PointT>::Ptr &pc_pillar_tc,
 									 typename pcl::PointCloud<PointT>::Ptr &pc_beam_tc,
@@ -2656,7 +2656,7 @@ class CFilter : public CloudUtility<PointT>
 
 	//Bridef: Used for the preprocessing of fine registration
 	//Use the intersection bounding box to filter the outlier points (--> to speed up)
-	bool get_cloud_pair_intersection(bounds_t &intersection_bbx, typename pcl::PointCloud<PointT>::Ptr &pc_target, typename pcl::PointCloud<PointT>::Ptr &pc_source)
+	bool get_cloud_pair_intersection(Bounds &intersection_bbx, typename pcl::PointCloud<PointT>::Ptr &pc_target, typename pcl::PointCloud<PointT>::Ptr &pc_source)
 	{
 		bbx_filter(pc_target, intersection_bbx);
 		bbx_filter(pc_source, intersection_bbx);
@@ -2674,11 +2674,11 @@ class CFilter : public CloudUtility<PointT>
 							 std::vector<typename pcl::PointCloud<PointT>::Ptr> &cross_section_SR,
 							 float cross_section_width = 2.0)
 	{
-		centerpoint_t cp_S, cp_T;
+		CenterPoint cp_S, cp_T;
 		this->get_cloud_cpt(cloud_S, cp_S);
 		this->get_cloud_cpt(cloud_T, cp_T);
 
-		bounds_t cross_section_x, cross_section_y;
+		Bounds cross_section_x, cross_section_y;
 		cross_section_x.inf_xyz();
 		cross_section_y.inf_xyz();
 
@@ -2734,13 +2734,13 @@ class CFilter : public CloudUtility<PointT>
 			float u = 0.5 * (1 - hor_ang / M_PI) * width; // (0 width)
 			float v = (1 - (f_up - ver_ang) / (f_up + f_down)) * height;
 
-			int c = max_(min_(width - 1, (int)(u)), 0);  //col
-			int r = max_(min_(height - 1, (int)(v)), 0); //row
+			int c = std::max(std::min(width - 1, (int)(u)), 0);  //col
+			int r = std::max(std::min(height - 1, (int)(v)), 0); //row
 
 			// if (i % 100 == 0)
 			//     std::cout << r << "," << c << "," << point_cloud->points[i].d << std::endl;
 
-			range_image.at<uchar>(63 - r, c) = 255.0 * min_(1.0, temp_dist / max_distance);
+			range_image.at<uchar>(63 - r, c) = 255.0 * std::min(1.0, temp_dist / max_distance);
 		}
 		return true;
 	}
@@ -2756,7 +2756,7 @@ class CFilter : public CloudUtility<PointT>
 		float shift_y;
 		if (shift_or_not)
 		{
-			centerpoint_t cpt;
+			CenterPoint cpt;
 			this->get_cloud_cpt(cloud, cpt);
 			shift_x = cpt.x;
 			shift_y = cpt.y;

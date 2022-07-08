@@ -28,18 +28,12 @@
 
 #include <glog/logging.h>
 
-#define max_(a, b) (((a) > (b)) ? (a) : (b))
-#define min_(a, b) (((a) < (b)) ? (a) : (b))
-
 using namespace std;
 
 //TypeDef
-
 //Select from these two (with/without intensity)
-//typedef pcl::PointNormal Point_T;
-typedef pcl::PointXYZINormal Point_T; //mind that 'curvature' here is used as ring number for spining scanner
-//typedef ccn::PointXYZINTRL Point_T; //TODO : with time stamp, label and ring number property (a better way is to use the customed point type without template class)
-//typedef pcl::PointSurfel Point_T;
+//mind that 'curvature' here is used as ring number for spining scanner
+typedef pcl::PointXYZINormal MullsPoint;
 
 /**
 //pcl::PointXYZINormal member variables
@@ -50,12 +44,11 @@ typedef pcl::PointXYZINormal Point_T; //mind that 'curvature' here is used as ri
 //data[3]: used as neighborhood curvature
 //normal[3]: used as the height above ground
 **/
+typedef pcl::PointCloud<MullsPoint>::Ptr pcTPtr;
+typedef pcl::PointCloud<MullsPoint> pcT;
 
-typedef pcl::PointCloud<Point_T>::Ptr pcTPtr;
-typedef pcl::PointCloud<Point_T> pcT;
-
-typedef pcl::search::KdTree<Point_T>::Ptr pcTreePtr;
-typedef pcl::search::KdTree<Point_T> pcTree;
+typedef pcl::search::KdTree<MullsPoint>::Ptr pcTreePtr;
+typedef pcl::search::KdTree<MullsPoint> pcTree;
 
 typedef pcl::PointCloud<pcl::PointXYZI>::Ptr pcXYZIPtr;
 typedef pcl::PointCloud<pcl::PointXYZI> pcXYZI;
@@ -89,17 +82,15 @@ typedef std::vector<Eigen::Matrix4d, Eigen::aligned_allocator<Eigen::Matrix4d>> 
 namespace lo
 {
 
-struct centerpoint_t
-{
+struct CenterPoint {
 	double x;
 	double y;
 	double z;
-	centerpoint_t(double x = 0, double y = 0, double z = 0) : x(x), y(y), z(z) {}
+	CenterPoint(double x = 0, double y = 0, double z = 0) : x(x), y(y), z(z) {}
 };
 
 //regular bounding box whose edges are parallel to x,y,z axises
-struct bounds_t
-{
+struct Bounds {
 	double min_x;
 	double min_y;
 	double min_z;
@@ -108,52 +99,26 @@ struct bounds_t
 	double max_z;
 	int type;
 
-	bounds_t()
-	{
+	Bounds() {
 		min_x = min_y = min_z = max_x = max_y = max_z = 0.0;
 	}
-	void inf_x()
-	{
+	void inf_x() {
 		min_x = -DBL_MAX;
 		max_x = DBL_MAX;
 	}
-	void inf_y()
-	{
+	void inf_y() {
 		min_y = -DBL_MAX;
 		max_y = DBL_MAX;
 	}
-	void inf_z()
-	{
+	void inf_z() {
 		min_z = -DBL_MAX;
 		max_z = DBL_MAX;
 	}
-	void inf_xyz()
-	{
+	void inf_xyz() {
 		inf_x();
 		inf_y();
 		inf_z();
 	}
-};
-
-//the point cloud's collecting template (node's type)
-enum DataType
-{
-	ALS,
-	TLS,
-	MLS,
-	BPLS,
-	RGBD,
-	SLAM
-};
-
-//the edge (constraint)'s type
-enum ConstraintType
-{
-	REGISTRATION,
-	ADJACENT,
-	HISTORY,
-	SMOOTH,
-	NONE
 };
 
 //pose as the format of translation vector and unit quaterniond, used in pose graph optimization
@@ -240,16 +205,14 @@ struct cloudblock_t
 	//ID means the number may not be continous and begining from 0 (like 3, 7, 11, ...),
 	//but index should begin from 0 and its step (interval) should be 1 (like 0, 1, 2, 3, ...)
 
-	DataType data_type; //Datatype
-
-	bounds_t bound;				  //Bounding Box in geo-coordinate system
-	centerpoint_t cp;			  //Center Point in geo-coordinate system
-	centerpoint_t station;		  //Station position in geo-coordinate system
+	Bounds bound;				  //Bounding Box in geo-coordinate system
+	CenterPoint cp;			  //Center Point in geo-coordinate system
+	CenterPoint station;		  //Station position in geo-coordinate system
 	Eigen::Matrix4d station_pose; //Station pose in geo-coordinate system
 
-	bounds_t local_bound;				//Bounding Box in local coordinate system
-	centerpoint_t local_cp;				//Center Point in local coordinate system
-	centerpoint_t local_station;		//Station position in local coordinate system
+	Bounds local_bound;				//Bounding Box in local coordinate system
+	CenterPoint local_cp;				//Center Point in local coordinate system
+	CenterPoint local_station;		//Station position in local coordinate system
 	Eigen::Matrix4d local_station_pose; //Station pose in local coordinate system
 
 	bool station_position_available; //If the approximate position of the station is provided
@@ -562,7 +525,6 @@ struct constraint_t
 {
 	int unique_id;				   //Unique ID
 	cloudblock_Ptr block1, block2; //Two block  //Target: block1,  Source: block2
-	ConstraintType con_type;	   //ConstraintType
 	Eigen::Matrix4d Trans1_2;	  //transformation from 2 to 1 (in global shifted map coordinate system)
 	Matrix6d information_matrix;
 	float overlapping_ratio; //overlapping ratio (not bbx IOU) of two cloud blocks
@@ -791,13 +753,54 @@ struct pgo_param_t
 	float yaw_std = 0.05;
 };
 
+//Get Bound of a Point Cloud
+void get_cloud_bbx(const pcl::PointCloud<MullsPoint>::Ptr &cloud, Bounds &bound)
+{
+	double min_x = DBL_MAX;
+	double min_y = DBL_MAX;
+	double min_z = DBL_MAX;
+	double max_x = -DBL_MAX;
+	double max_y = -DBL_MAX;
+	double max_z = -DBL_MAX;
+
+	for (int i = 0; i < cloud->points.size(); i++)
+	{
+		if (min_x > cloud->points[i].x)
+			min_x = cloud->points[i].x;
+		if (min_y > cloud->points[i].y)
+			min_y = cloud->points[i].y;
+		if (min_z > cloud->points[i].z)
+			min_z = cloud->points[i].z;
+		if (max_x < cloud->points[i].x)
+			max_x = cloud->points[i].x;
+		if (max_y < cloud->points[i].y)
+			max_y = cloud->points[i].y;
+		if (max_z < cloud->points[i].z)
+			max_z = cloud->points[i].z;
+	}
+	bound.min_x = min_x;
+	bound.max_x = max_x;
+	bound.min_y = min_y;
+	bound.max_y = max_y;
+	bound.min_z = min_z;
+	bound.max_z = max_z;
+}
+
+void get_cloud_bbx_cpt(const pcl::PointCloud<MullsPoint>::Ptr &cloud, Bounds &bound, CenterPoint &cp)
+{
+	get_cloud_bbx(cloud, bound);
+	cp.x = 0.5 * (bound.min_x + bound.max_x);
+	cp.y = 0.5 * (bound.min_y + bound.max_y);
+	cp.z = 0.5 * (bound.min_z + bound.max_z);
+}
+
 //basic common functions of point cloud
 template <typename PointT>
 class CloudUtility
 {
   public:
 	//Get Center of a Point Cloud
-	void get_cloud_cpt(const typename pcl::PointCloud<PointT>::Ptr &cloud, centerpoint_t &cp)
+	void get_cloud_cpt(const typename pcl::PointCloud<PointT>::Ptr &cloud, CenterPoint &cp)
 	{
 		double cx = 0, cy = 0, cz = 0;
 		int point_num = cloud->points.size();
@@ -814,7 +817,7 @@ class CloudUtility
 	}
 
 	//Get Bound of a Point Cloud
-	void get_cloud_bbx(const typename pcl::PointCloud<PointT>::Ptr &cloud, bounds_t &bound)
+	void get_cloud_bbx(const typename pcl::PointCloud<PointT>::Ptr &cloud, Bounds &bound)
 	{
 		double min_x = DBL_MAX;
 		double min_y = DBL_MAX;
@@ -847,7 +850,7 @@ class CloudUtility
 	}
 
 	//Get Bound and Center of a Point Cloud
-	void get_cloud_bbx_cpt(const typename pcl::PointCloud<PointT>::Ptr &cloud, bounds_t &bound, centerpoint_t &cp)
+	void get_cloud_bbx_cpt(const typename pcl::PointCloud<PointT>::Ptr &cloud, Bounds &bound, CenterPoint &cp)
 	{
 		get_cloud_bbx(cloud, bound);
 		cp.x = 0.5 * (bound.min_x + bound.max_x);
@@ -855,17 +858,17 @@ class CloudUtility
 		cp.z = 0.5 * (bound.min_z + bound.max_z);
 	}
 
-	void get_intersection_bbx(bounds_t &bbx_1, bounds_t &bbx_2, bounds_t &bbx_intersection, float bbx_boundary_pad = 2.0)
+	void get_intersection_bbx(Bounds &bbx_1, Bounds &bbx_2, Bounds &bbx_intersection, float bbx_boundary_pad = 2.0)
 	{
-		bbx_intersection.min_x = max_(bbx_1.min_x, bbx_2.min_x) - bbx_boundary_pad;
-		bbx_intersection.min_y = max_(bbx_1.min_y, bbx_2.min_y) - bbx_boundary_pad;
-		bbx_intersection.min_z = max_(bbx_1.min_z, bbx_2.min_z) - bbx_boundary_pad;
-		bbx_intersection.max_x = min_(bbx_1.max_x, bbx_2.max_x) + bbx_boundary_pad;
-		bbx_intersection.max_y = min_(bbx_1.max_y, bbx_2.max_y) + bbx_boundary_pad;
-		bbx_intersection.max_z = min_(bbx_1.max_z, bbx_2.max_z) + bbx_boundary_pad;
+		bbx_intersection.min_x = std::max(bbx_1.min_x, bbx_2.min_x) - bbx_boundary_pad;
+		bbx_intersection.min_y = std::max(bbx_1.min_y, bbx_2.min_y) - bbx_boundary_pad;
+		bbx_intersection.min_z = std::max(bbx_1.min_z, bbx_2.min_z) - bbx_boundary_pad;
+		bbx_intersection.max_x = std::min(bbx_1.max_x, bbx_2.max_x) + bbx_boundary_pad;
+		bbx_intersection.max_y = std::min(bbx_1.max_y, bbx_2.max_y) + bbx_boundary_pad;
+		bbx_intersection.max_z = std::min(bbx_1.max_z, bbx_2.max_z) + bbx_boundary_pad;
 	}
 
-	void merge_bbx(std::vector<bounds_t> &bbxs, bounds_t &bbx_merged)
+	void merge_bbx(std::vector<Bounds> &bbxs, Bounds &bbx_merged)
 	{
 		bbx_merged.min_x = DBL_MAX;
 		bbx_merged.min_y = DBL_MAX;
@@ -876,17 +879,17 @@ class CloudUtility
 
 		for (int i = 0; i < bbxs.size(); i++)
 		{
-			bbx_merged.min_x = min_(bbx_merged.min_x, bbxs[i].min_x);
-			bbx_merged.min_y = min_(bbx_merged.min_y, bbxs[i].min_y);
-			bbx_merged.min_z = min_(bbx_merged.min_z, bbxs[i].min_z);
-			bbx_merged.max_x = max_(bbx_merged.max_x, bbxs[i].max_x);
-			bbx_merged.max_y = max_(bbx_merged.max_y, bbxs[i].max_y);
-			bbx_merged.max_z = max_(bbx_merged.max_z, bbxs[i].max_z);
+			bbx_merged.min_x = std::min(bbx_merged.min_x, bbxs[i].min_x);
+			bbx_merged.min_y = std::min(bbx_merged.min_y, bbxs[i].min_y);
+			bbx_merged.min_z = std::min(bbx_merged.min_z, bbxs[i].min_z);
+			bbx_merged.max_x = std::max(bbx_merged.max_x, bbxs[i].max_x);
+			bbx_merged.max_y = std::max(bbx_merged.max_y, bbxs[i].max_y);
+			bbx_merged.max_z = std::max(bbx_merged.max_z, bbxs[i].max_z);
 		}
 	}
 
 	//Get Bound of Subsets of a Point Cloud
-	void get_sub_bbx(typename pcl::PointCloud<PointT>::Ptr &cloud, vector<int> &index, bounds_t &bound)
+	void get_sub_bbx(typename pcl::PointCloud<PointT>::Ptr &cloud, vector<int> &index, Bounds &bound)
 	{
 		typename pcl::PointCloud<PointT>::Ptr temp_cloud(new pcl::PointCloud<PointT>);
 		for (int i = 0; i < index.size(); i++)
