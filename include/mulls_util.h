@@ -38,6 +38,26 @@ typedef Eigen::Matrix<double, 6, 6> Matrix6d;
 namespace mulls
 {
 
+enum TransformEstimationType
+{
+	SVD,
+	LM,
+	LLS
+};
+
+enum CorresEstimationType
+{
+	NN,
+	NS
+}; //NN: Nearest Neighbor ; NS: Normal Shooting
+
+enum DistMetricType
+{
+	Point2Point,
+	Point2Plane,
+	Plane2Plane
+};
+
 // Eigen Value ,lamada1 > lamada2 > lamada3;
 struct eigenvalue_t {
 	double lamada1;

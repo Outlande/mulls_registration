@@ -103,8 +103,6 @@ class MullsRegistration
 										 pcl::PointCloud<MullsPoint>::Ptr &target_corrs, pcl::PointCloud<MullsPoint>::Ptr &source_corrs,
 										 bool fixed_num_corr = false, int corr_num = 2000, bool reciprocal_on = true) {
 		// to enable reciprocal correspondence, you need to disable fixed_num_corr. 
-										 // to enable reciprocal correspondence, you need to disable fixed_num_corr. 
-		// to enable reciprocal correspondence, you need to disable fixed_num_corr. 
 		// once fixed_num_cor is enabled, reciprocal correspondence would be automatically disabled
 		int target_kpts_num = target_kpts->points.size();
 		int source_kpts_num = source_kpts->points.size();
@@ -262,6 +260,8 @@ class MullsRegistration
 		std::vector<Eigen::VectorXf, Eigen::aligned_allocator<Eigen::VectorXf>>().swap(source_kpts_descriptors);
 		std::vector<std::vector<float>>().swap(dist_table);
 		std::vector<std::pair<int, float>>().swap(dist_array);
+
+		LOG(INFO) << "[" << source_corrs->points.size() << "] correspondences found in [" << time_used.count() * 1000.0 << "] ms";
 
 		return true;
 	}
@@ -610,8 +610,12 @@ class MullsRegistration
 				//because cofactor_matrix =  (ATPA)^(-1), so we get
 				information_matrix = (1.0 / sigma_square_post) * cofactor_matrix.inverse();
 
+				Matrix6d vc_matrix = information_matrix.inverse(); //variance covariance matrix
 				break; 
 			}
+			//Update the source pointcloud
+			//batch_transform_feature_points(pc_ground_sc, pc_pillar_sc, pc_beam_sc, pc_facade_sc, pc_roof_sc, pc_vertex_sc, TempTran);
+
 			//Update the transformation matrix till-now
 			initial_guess = TempTran * initial_guess;
 		}
@@ -1215,7 +1219,7 @@ class MullsRegistration
 										 float weight, bool dist_weight_or_not = false, bool residual_weight_or_not = false, bool intensity_weight_or_not = false,
 										 float residual_window_size = 0.1) {
 		//unknown : roll (alpha), picth (beta) and tz
-		for (size_t i = 0u; i < (*Corr).size(); i++)
+		for (int i = 0; i < (*Corr).size(); i++)
 		{
 			int s_index, t_index;
 			s_index = (*Corr)[i].index_query;
@@ -1592,7 +1596,6 @@ class MullsRegistration
 											pc_ground_sc, pc_pillar_sc, pc_beam_sc, pc_facade_sc, pc_roof_sc, pc_vertex_sc);
     	return true;
 	}
-};
 
 } // namespace mulls
 

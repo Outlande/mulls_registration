@@ -127,7 +127,7 @@ int main(int argc, char **argv)
     float keypoint_nms_radius = 0.25 * pca_neigh_r;
 
     MullsFilter cfilter;
-    CRegistration<MullsPoint> creg;
+    MullsRegistration creg;
 
     CloudBlockPtr cblock_1(new CloudBlock()), cblock_2(new CloudBlock());
     cblock_1->filename = filename1;
@@ -180,7 +180,8 @@ int main(int argc, char **argv)
     }
 
     creg.mm_lls_icp(reg_con, max_iteration_num, reg_corr_dis_thre, converge_tran, converge_rot_d, 0.25 * reg_corr_dis_thre,
-                        1.1, "111110", "1101", 1.0, 0.1, 0.1, 0.1, init_mat);
+                    1.1, "111110", "1101", 1.0, 0.1, 0.1, 0.1, init_mat);
+    std::cout << reg_con.Trans1_2<<std::endl;
     pcTPtr pc_s_tran(new pcT());
     pcl::transformPointCloud(*reg_con.block2->pc_down, *pc_s_tran, reg_con.Trans1_2);
     show_register_result(pc_s_tran, reg_con.block1->pc_down, "mulls");
