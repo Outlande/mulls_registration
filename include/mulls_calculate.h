@@ -47,7 +47,7 @@ using namespace Eigen;
 namespace mulls
 {
 
-class MullsRegistration
+class MullsCalculate
 {
   public:
 	//brief: Compute fpfh_feature

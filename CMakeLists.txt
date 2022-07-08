@@ -62,7 +62,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # source folder
 set(SRC_LIST
-  src/mulls_registration.cpp
+  src/mulls_calculate.cpp
   src/mulls_filter.cpp
   src/mulls_util.cpp
   src/pca.cpp

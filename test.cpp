@@ -1,5 +1,5 @@
 #include "mulls_filter.h"
-#include "mulls_registration.h"
+#include "mulls_calculate.h"
 #include "mulls_util.h"
 
 #include <glog/logging.h>
@@ -127,7 +127,7 @@ int main(int argc, char **argv)
     float keypoint_nms_radius = 0.25 * pca_neigh_r;
 
     MullsFilter cfilter;
-    MullsRegistration creg;
+    MullsCalculate creg;
 
     CloudBlockPtr cblock_1(new CloudBlock()), cblock_2(new CloudBlock());
     cblock_1->filename = filename1;

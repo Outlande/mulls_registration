@@ -1,4 +1,4 @@
-#include "mulls_registration.h"
+#include "mulls_calculate.h"
 
 #if TEASER_ON
 //teaser++ (global registration)
@@ -18,7 +18,7 @@
 
 namespace mulls
 {
-void MullsRegistration::compute_fpfh_feature(const pcl::PointCloud<MullsPoint>::Ptr &input_cloud,
+void MullsCalculate::compute_fpfh_feature(const pcl::PointCloud<MullsPoint>::Ptr &input_cloud,
 							                 fpfhPtr &cloud_fpfh, float search_radius) {
 	// Calculate the Point Normal
 	// Estimate FPFH Feature
@@ -33,7 +33,7 @@ void MullsRegistration::compute_fpfh_feature(const pcl::PointCloud<MullsPoint>::
 	est_fpfh.compute(*cloud_fpfh);
 }
 
-double MullsRegistration::coarse_reg_fpfhsac(const pcl::PointCloud<MullsPoint>::Ptr &source_cloud,
+double MullsCalculate::coarse_reg_fpfhsac(const pcl::PointCloud<MullsPoint>::Ptr &source_cloud,
 											 const pcl::PointCloud<MullsPoint>::Ptr &target_cloud,
 											 pcl::PointCloud<MullsPoint>::Ptr &traned_source,
 											 Eigen::Matrix4d &transformationS2T, float search_radius) {
@@ -56,7 +56,7 @@ double MullsRegistration::coarse_reg_fpfhsac(const pcl::PointCloud<MullsPoint>::
 	return fitness_score;
 }
 
-bool MullsRegistration::find_feature_correspondence_ncc(const pcl::PointCloud<MullsPoint>::Ptr &target_kpts, const pcl::PointCloud<MullsPoint>::Ptr &source_kpts,
+bool MullsCalculate::find_feature_correspondence_ncc(const pcl::PointCloud<MullsPoint>::Ptr &target_kpts, const pcl::PointCloud<MullsPoint>::Ptr &source_kpts,
 														pcl::PointCloud<MullsPoint>::Ptr &target_corrs, pcl::PointCloud<MullsPoint>::Ptr &source_corrs,
 														bool fixed_num_corr, int corr_num, bool reciprocal_on) {
 	// to enable reciprocal correspondence, you need to disable fixed_num_corr. 
@@ -220,7 +220,7 @@ bool MullsRegistration::find_feature_correspondence_ncc(const pcl::PointCloud<Mu
 	return true;
 }
 
-int MullsRegistration::coarse_reg_ransac(const pcl::PointCloud<MullsPoint>::Ptr &target_pts,
+int MullsCalculate::coarse_reg_ransac(const pcl::PointCloud<MullsPoint>::Ptr &target_pts,
 						const pcl::PointCloud<MullsPoint>::Ptr &source_pts,
 						Eigen::Matrix4d &tran_mat, float noise_bound, 
 						int min_inlier_num, int max_iter_num) {		
@@ -260,7 +260,7 @@ int MullsRegistration::coarse_reg_ransac(const pcl::PointCloud<MullsPoint>::Ptr 
 }
 
 //coarse global registration using TEASER ++  (faster and more robust to outlier than RANSAC)
-int MullsRegistration::coarse_reg_teaser(const pcl::PointCloud<MullsPoint>::Ptr &target_pts,
+int MullsCalculate::coarse_reg_teaser(const pcl::PointCloud<MullsPoint>::Ptr &target_pts,
 										 const pcl::PointCloud<MullsPoint>::Ptr &source_pts,
 										 Eigen::Matrix4d &tran_mat, float noise_bound, int min_inlier_num) {
 	int teaser_state = 0; //(failed: -1, successful[need check]: 0, successful[reliable]: 1)
@@ -321,7 +321,7 @@ int MullsRegistration::coarse_reg_teaser(const pcl::PointCloud<MullsPoint>::Ptr 
 	return (-1);
 }
 
-bool MullsRegistration::determine_source_target_cloud(const CloudBlockPtr &block_1, const CloudBlockPtr &block_2, 
+bool MullsCalculate::determine_source_target_cloud(const CloudBlockPtr &block_1, const CloudBlockPtr &block_2, 
                                                       Constraint &registration_cons) {
 	if (block_1->down_feature_point_num > block_2->down_feature_point_num) {
 		registration_cons.block1 = block_1;
@@ -333,7 +333,7 @@ bool MullsRegistration::determine_source_target_cloud(const CloudBlockPtr &block
 	return true;
 }
 
-int MullsRegistration::mm_lls_icp(Constraint &registration_cons, int max_iter_num, float dis_thre_unit,
+int MullsCalculate::mm_lls_icp(Constraint &registration_cons, int max_iter_num, float dis_thre_unit,
 								  float converge_translation, float converge_rotation_d, float dis_thre_min,
 								  float dis_thre_update_rate, std::string used_feature_type, std::string weight_strategy,
 								  float z_xy_balanced_ratio, float pt2pt_residual_window, float pt2pl_residual_window,
@@ -572,7 +572,7 @@ int MullsRegistration::mm_lls_icp(Constraint &registration_cons, int max_iter_nu
 	return process_code;
 }
 
-void MullsRegistration::batch_transform_feature_points(pcl::PointCloud<MullsPoint>::Ptr pc_ground, pcl::PointCloud<MullsPoint>::Ptr pc_pillar,
+void MullsCalculate::batch_transform_feature_points(pcl::PointCloud<MullsPoint>::Ptr pc_ground, pcl::PointCloud<MullsPoint>::Ptr pc_pillar,
 													   pcl::PointCloud<MullsPoint>::Ptr pc_beam, pcl::PointCloud<MullsPoint>::Ptr pc_facade,
 													   pcl::PointCloud<MullsPoint>::Ptr pc_roof, pcl::PointCloud<MullsPoint>::Ptr pc_vertex,
 													   Eigen::Matrix4d &Tran) {
@@ -587,7 +587,7 @@ void MullsRegistration::batch_transform_feature_points(pcl::PointCloud<MullsPoin
 //Time complexity of kdtree (in this case, the target point cloud [n points] is used for construct the tree while each point in source point cloud acts as a query point)
 //build tree: O(nlogn) ---> so it's better to build the tree only once
 //searching 1-nearest neighbor: O(logn) in average ---> so we can bear a larger number of target points
-bool MullsRegistration::determine_corres(pcl::PointCloud<MullsPoint>::Ptr &Source_Cloud, pcl::PointCloud<MullsPoint>::Ptr &Target_Cloud,
+bool MullsCalculate::determine_corres(pcl::PointCloud<MullsPoint>::Ptr &Source_Cloud, pcl::PointCloud<MullsPoint>::Ptr &Target_Cloud,
 										 const pcl::search::KdTree<MullsPoint>::Ptr &target_kdtree, float dis_thre,
 										 boost::shared_ptr<pcl::Correspondences> &Corr_f, bool normal_shooting_on, bool normal_check,
 										 float angle_thre_degree, bool duplicate_check, int K_filter_distant_point) {
@@ -697,7 +697,7 @@ bool MullsRegistration::determine_corres(pcl::PointCloud<MullsPoint>::Ptr &Sourc
 }
 
 
-void MullsRegistration::update_corr_dist_thre(float &dis_thre_ground, float &dis_thre_pillar, float &dis_thre_beam,
+void MullsCalculate::update_corr_dist_thre(float &dis_thre_ground, float &dis_thre_pillar, float &dis_thre_beam,
 											  float &dis_thre_facade, float &dis_thre_roof, float &dis_thre_vertex,
 											  float dis_thre_update_rate, float dis_thre_min) {
 	dis_thre_ground = std::max(1.0f * dis_thre_ground / dis_thre_update_rate, dis_thre_min);
@@ -708,7 +708,7 @@ void MullsRegistration::update_corr_dist_thre(float &dis_thre_ground, float &dis
 	dis_thre_vertex = std::max(1.0f * dis_thre_vertex / dis_thre_update_rate, dis_thre_min);
 }
 
-bool MullsRegistration::multi_metrics_lls_tran_estimation(const pcl::PointCloud<MullsPoint>::Ptr &Source_Ground, const pcl::PointCloud<MullsPoint>::Ptr &Target_Ground, boost::shared_ptr<pcl::Correspondences> &Corr_Ground,
+bool MullsCalculate::multi_metrics_lls_tran_estimation(const pcl::PointCloud<MullsPoint>::Ptr &Source_Ground, const pcl::PointCloud<MullsPoint>::Ptr &Target_Ground, boost::shared_ptr<pcl::Correspondences> &Corr_Ground,
 														  const pcl::PointCloud<MullsPoint>::Ptr &Source_Pillar, const pcl::PointCloud<MullsPoint>::Ptr &Target_Pillar, boost::shared_ptr<pcl::Correspondences> &Corr_Pillar,
 														  const pcl::PointCloud<MullsPoint>::Ptr &Source_Beam, const pcl::PointCloud<MullsPoint>::Ptr &Target_Beam, boost::shared_ptr<pcl::Correspondences> &Corr_Beam,
 														  const pcl::PointCloud<MullsPoint>::Ptr &Source_Facade, const pcl::PointCloud<MullsPoint>::Ptr &Target_Facade, boost::shared_ptr<pcl::Correspondences> &Corr_Facade,
@@ -808,7 +808,7 @@ bool MullsRegistration::multi_metrics_lls_tran_estimation(const pcl::PointCloud<
 }
 
 
-bool MullsRegistration::pt2pt_lls_summation(const pcl::PointCloud<MullsPoint>::Ptr &Source_Cloud, const pcl::PointCloud<MullsPoint>::Ptr &Target_Cloud,
+bool MullsCalculate::pt2pt_lls_summation(const pcl::PointCloud<MullsPoint>::Ptr &Source_Cloud, const pcl::PointCloud<MullsPoint>::Ptr &Target_Cloud,
 											boost::shared_ptr<pcl::Correspondences> &Corr, Matrix6d &ATPA, Vector6d &ATPb, int iter_num,
 											float weight, bool dist_weight_or_not , bool residual_weight_or_not, bool intensity_weight_or_not,
 											float residual_window_size) {
@@ -891,7 +891,7 @@ bool MullsRegistration::pt2pt_lls_summation(const pcl::PointCloud<MullsPoint>::P
 	return true;
 }
 
-bool MullsRegistration::pt2pl_lls_summation(const pcl::PointCloud<MullsPoint>::Ptr &Source_Cloud, const pcl::PointCloud<MullsPoint>::Ptr &Target_Cloud,
+bool MullsCalculate::pt2pl_lls_summation(const pcl::PointCloud<MullsPoint>::Ptr &Source_Cloud, const pcl::PointCloud<MullsPoint>::Ptr &Target_Cloud,
 											boost::shared_ptr<pcl::Correspondences> &Corr, Matrix6d &ATPA, Vector6d &ATPb, int iter_num, float weight, 
 											bool dist_weight_or_not, bool residual_weight_or_not, bool intensity_weight_or_not, float residual_window_size) {
 	for (size_t i = 0u; i < (*Corr).size(); i++) {
@@ -976,7 +976,7 @@ bool MullsRegistration::pt2pl_lls_summation(const pcl::PointCloud<MullsPoint>::P
 	return true;
 }
 
-bool MullsRegistration::pt2li_lls_pri_direction_summation(const pcl::PointCloud<MullsPoint>::Ptr &Source_Cloud, const pcl::PointCloud<MullsPoint>::Ptr &Target_Cloud,
+bool MullsCalculate::pt2li_lls_pri_direction_summation(const pcl::PointCloud<MullsPoint>::Ptr &Source_Cloud, const pcl::PointCloud<MullsPoint>::Ptr &Target_Cloud,
 														  boost::shared_ptr<pcl::Correspondences> &Corr, Matrix6d &ATPA, Vector6d &ATPb, int iter_num,
 														  float weight, bool dist_weight_or_not, bool residual_weight_or_not, bool intensity_weight_or_not,
 														  float residual_window_size) {
@@ -1084,7 +1084,7 @@ bool MullsRegistration::pt2li_lls_pri_direction_summation(const pcl::PointCloud<
 }
 
 
-bool MullsRegistration::ground_3dof_lls_tran_estimation(const pcl::PointCloud<MullsPoint>::Ptr &Source_Ground,
+bool MullsCalculate::ground_3dof_lls_tran_estimation(const pcl::PointCloud<MullsPoint>::Ptr &Source_Ground,
 														const pcl::PointCloud<MullsPoint>::Ptr &Target_Ground,
 														boost::shared_ptr<pcl::Correspondences> &Corr_Ground,
 														Eigen::Vector3d &unknown_x, Eigen::Matrix3d &cofactor_matrix,
@@ -1124,7 +1124,7 @@ bool MullsRegistration::ground_3dof_lls_tran_estimation(const pcl::PointCloud<Mu
 	return true;
 }
 
-bool MullsRegistration::pt2pl_ground_3dof_lls_summation(const pcl::PointCloud<MullsPoint>::Ptr &Source_Cloud, const pcl::PointCloud<MullsPoint>::Ptr &Target_Cloud,
+bool MullsCalculate::pt2pl_ground_3dof_lls_summation(const pcl::PointCloud<MullsPoint>::Ptr &Source_Cloud, const pcl::PointCloud<MullsPoint>::Ptr &Target_Cloud,
 														boost::shared_ptr<pcl::Correspondences> &Corr, Eigen::Matrix3d &ATPA, Eigen::Vector3d &ATPb, int iter_num,
 														float weight, bool dist_weight_or_not, bool residual_weight_or_not , bool intensity_weight_or_not,
 														float residual_window_size) {
@@ -1191,7 +1191,7 @@ bool MullsRegistration::pt2pl_ground_3dof_lls_summation(const pcl::PointCloud<Mu
 	return true;
 }
 
-bool MullsRegistration::get_multi_metrics_lls_residual(const pcl::PointCloud<MullsPoint>::Ptr &Source_Ground, const pcl::PointCloud<MullsPoint>::Ptr &Target_Ground, boost::shared_ptr<pcl::Correspondences> &Corr_Ground,
+bool MullsCalculate::get_multi_metrics_lls_residual(const pcl::PointCloud<MullsPoint>::Ptr &Source_Ground, const pcl::PointCloud<MullsPoint>::Ptr &Target_Ground, boost::shared_ptr<pcl::Correspondences> &Corr_Ground,
 													   const pcl::PointCloud<MullsPoint>::Ptr &Source_Pillar, const pcl::PointCloud<MullsPoint>::Ptr &Target_Pillar, boost::shared_ptr<pcl::Correspondences> &Corr_Pillar,
 													   const pcl::PointCloud<MullsPoint>::Ptr &Source_Beam, const pcl::PointCloud<MullsPoint>::Ptr &Target_Beam, boost::shared_ptr<pcl::Correspondences> &Corr_Beam,
 													   const pcl::PointCloud<MullsPoint>::Ptr &Source_Facade, const pcl::PointCloud<MullsPoint>::Ptr &Target_Facade, boost::shared_ptr<pcl::Correspondences> &Corr_Facade,
@@ -1216,7 +1216,7 @@ bool MullsRegistration::get_multi_metrics_lls_residual(const pcl::PointCloud<Mul
 		return false;
 }
 
-bool MullsRegistration::pt2pt_lls_residual(const pcl::PointCloud<MullsPoint>::Ptr &Source_Cloud, const pcl::PointCloud<MullsPoint>::Ptr &Target_Cloud,
+bool MullsCalculate::pt2pt_lls_residual(const pcl::PointCloud<MullsPoint>::Ptr &Source_Cloud, const pcl::PointCloud<MullsPoint>::Ptr &Target_Cloud,
 						                   boost::shared_ptr<pcl::Correspondences> &Corr, const Vector6d &transform_x, double &VTPV, int &observation_count) {
 	//point-to-plane distance metrics
 	//3 observation equation for 1 pair of correspondence
@@ -1257,7 +1257,7 @@ bool MullsRegistration::pt2pt_lls_residual(const pcl::PointCloud<MullsPoint>::Pt
 	return true;
 }
 
-bool MullsRegistration::pt2pl_lls_residual(const pcl::PointCloud<MullsPoint>::Ptr &Source_Cloud, const pcl::PointCloud<MullsPoint>::Ptr &Target_Cloud,
+bool MullsCalculate::pt2pl_lls_residual(const pcl::PointCloud<MullsPoint>::Ptr &Source_Cloud, const pcl::PointCloud<MullsPoint>::Ptr &Target_Cloud,
 						                   boost::shared_ptr<pcl::Correspondences> &Corr, const Vector6d &transform_x, double &VTPV, int &observation_count) {
 	//point-to-plane distance metrics
 	//1 observation equation for 1 pair of correspondence
@@ -1292,7 +1292,7 @@ bool MullsRegistration::pt2pl_lls_residual(const pcl::PointCloud<MullsPoint>::Pt
 	return true;
 }
 
-bool MullsRegistration::pt2li_lls_residual(const pcl::PointCloud<MullsPoint>::Ptr &Source_Cloud, const pcl::PointCloud<MullsPoint>::Ptr &Target_Cloud,
+bool MullsCalculate::pt2li_lls_residual(const pcl::PointCloud<MullsPoint>::Ptr &Source_Cloud, const pcl::PointCloud<MullsPoint>::Ptr &Target_Cloud,
 						                   boost::shared_ptr<pcl::Correspondences> &Corr, const Vector6d &transform_x, double &VTPV, int &observation_count) {
 	//point-to-line distance metrics
 	//3 observation equation for 1 pair of correspondence
@@ -1337,24 +1337,24 @@ bool MullsRegistration::pt2li_lls_residual(const pcl::PointCloud<MullsPoint>::Pt
 	return true;
 }
 
-float MullsRegistration::get_weight_by_dist_adaptive(float dist, int iter_num, float unit_dist, float b_min, float b_max, float b_step) {
+float MullsCalculate::get_weight_by_dist_adaptive(float dist, int iter_num, float unit_dist, float b_min, float b_max, float b_step) {
 	float b_current = std::min(b_min + b_step * iter_num, b_max);
 	float temp_weight = b_current + (1.0 - b_current) * dist / unit_dist;
 	temp_weight = std::max(temp_weight, 0.01f);
 	return temp_weight;
 }
 
-inline float MullsRegistration::get_weight_by_dist(float dist, float unit_dist, float base_value) {
+inline float MullsCalculate::get_weight_by_dist(float dist, float unit_dist, float base_value) {
 	return (base_value + (1 - base_value) * dist / unit_dist);
 }
 
-inline float MullsRegistration::get_weight_by_intensity(float intensity_1, float intensity_2, float base_value, float intensity_scale) {
+inline float MullsCalculate::get_weight_by_intensity(float intensity_1, float intensity_2, float base_value, float intensity_scale) {
 	float intensity_diff_ratio = std::fabs(intensity_1 - intensity_2) / intensity_scale;
 	float intensity_weight = std::exp(-1.0 * intensity_diff_ratio);
 	return intensity_weight;
 }
 
-inline float MullsRegistration::get_weight_by_residual(float res, float huber_thre, int delta) {
+inline float MullsCalculate::get_weight_by_residual(float res, float huber_thre, int delta) {
 	//Huber Loss
 	//y=0.5*x^2        , x<d
 	//y=0.5*d^2+|x|-d  , x>=d
@@ -1363,7 +1363,7 @@ inline float MullsRegistration::get_weight_by_residual(float res, float huber_th
 	return ((res > huber_thre) ? ((2 * res * huber_thre + (delta * delta - 2 * delta) * (huber_thre * huber_thre)) / res / res) : (1.0));
 }
 
-float MullsRegistration::get_weight_by_residual_general(float res, float thre, float alpha) {
+float MullsCalculate::get_weight_by_residual_general(float res, float thre, float alpha) {
 	float weight;
 	res = res / thre;
 	if (alpha == 2)
@@ -1376,7 +1376,7 @@ float MullsRegistration::get_weight_by_residual_general(float res, float thre, f
 	return weight;
 }
 
-bool MullsRegistration::construct_trans_a(const double &tx, const double &ty, const double &tz,
+bool MullsCalculate::construct_trans_a(const double &tx, const double &ty, const double &tz,
 										  const double &alpha, const double &beta, const double &gamma,
 										  Eigen::Matrix4d &transformation_matrix) {
 	// Construct the transformation matrix from rotation and translation
@@ -1401,7 +1401,7 @@ bool MullsRegistration::construct_trans_a(const double &tx, const double &ty, co
 	return true;
 }
 
-bool MullsRegistration::get_quat_euler_jacobi(const Eigen::Vector3d &euler_angle, Eigen::Matrix3d &Jacobi) {
+bool MullsCalculate::get_quat_euler_jacobi(const Eigen::Vector3d &euler_angle, Eigen::Matrix3d &Jacobi) {
 	float sin_half_roll, cos_half_roll, sin_half_pitch, cos_half_pitch, sin_half_yaw, cos_half_yaw;
 
 	sin_half_roll = sin(0.5 * euler_angle(0));
@@ -1428,7 +1428,7 @@ bool MullsRegistration::get_quat_euler_jacobi(const Eigen::Vector3d &euler_angle
 }
 
 
-bool MullsRegistration::keep_less_source_pts(pcl::PointCloud<MullsPoint>::Ptr &pc_ground_tc,
+bool MullsCalculate::keep_less_source_pts(pcl::PointCloud<MullsPoint>::Ptr &pc_ground_tc,
 											 pcl::PointCloud<MullsPoint>::Ptr &pc_pillar_tc,
 											 pcl::PointCloud<MullsPoint>::Ptr &pc_beam_tc,
 											 pcl::PointCloud<MullsPoint>::Ptr &pc_facade_tc,
@@ -1455,7 +1455,7 @@ bool MullsRegistration::keep_less_source_pts(pcl::PointCloud<MullsPoint>::Ptr &p
 	return true;
 }
 
-bool MullsRegistration::intersection_filter(Constraint &registration_cons,
+bool MullsCalculate::intersection_filter(Constraint &registration_cons,
 											pcl::PointCloud<MullsPoint>::Ptr &pc_ground_tc,
 											pcl::PointCloud<MullsPoint>::Ptr &pc_pillar_tc,
 											pcl::PointCloud<MullsPoint>::Ptr &pc_beam_tc,
