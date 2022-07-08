@@ -1,5 +1,5 @@
 #include "mulls_filter.h"
-#include "cregistration.hpp"
+#include "mulls_registration.h"
 #include "mulls_util.h"
 
 #include <glog/logging.h>
