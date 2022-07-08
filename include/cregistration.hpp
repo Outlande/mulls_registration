@@ -75,241 +75,6 @@ template <typename PointT>
 class CRegistration
 {
   public:
-	//General implement of icp registration algorithm in pcl (baseline method)
-	//(with different distance metrics, correspondence estimation, transformation estimation methods and parameters)
-	//radius NN neighborhood search
-	double icp_registration(const typename pcl::PointCloud<PointT>::Ptr &SourceCloud,
-							const typename pcl::PointCloud<PointT>::Ptr &TargetCloud,
-							typename pcl::PointCloud<PointT>::Ptr &TransformedSource,
-							Eigen::Matrix4d &transformationS2T,
-							DistMetricType metrics, CorresEstimationType ce, TransformEstimationType te,
-							bool use_reciprocal_correspondence, bool use_trimmed_rejector,
-							int max_iter, float thre_dis, float neighbor_radius)
-	{
-		clock_t t0, t1, t2;
-		t0 = clock();
-
-		double mae_nn;
-		pcl::registration::CorrespondenceRejectorVarTrimmed::Ptr trimmed_cr(new pcl::registration::CorrespondenceRejectorVarTrimmed);
-
-		switch (metrics)
-		{
-		case Point2Point:
-		{
-			t1 = clock();
-			pcl::IterativeClosestPoint<PointT, PointT> icp;
-
-			icp.setInputSource(SourceCloud);
-			icp.setInputTarget(TargetCloud);
-
-			typename pcl::registration::TransformationEstimationSVD<PointT, PointT, float>::Ptr te_svd(new pcl::registration::TransformationEstimationSVD<PointT, PointT, float>);
-			typename pcl::registration::TransformationEstimationLM<PointT, PointT, float>::Ptr te_lm(new pcl::registration::TransformationEstimationLM<PointT, PointT, float>);
-
-			switch (te)
-			{
-			case SVD:
-				icp.setTransformationEstimation(te_svd); //Use SVD
-				break;
-			case LM:
-				icp.setTransformationEstimation(te_lm); //Use L-M Non-Linear Optimization
-				break;
-			default: //Default svd
-				break;
-			}
-
-			// Use Reciprocal Correspondences or not? [a -> b && b -> a]
-			icp.setUseReciprocalCorrespondences(use_reciprocal_correspondence);
-
-			// Trimmed or not?
-			if (use_trimmed_rejector)
-				icp.addCorrespondenceRejector(trimmed_cr);
-			else
-				icp.setMaxCorrespondenceDistance(thre_dis);
-
-			// Converge criterion ( 'Or' Relation )
-			// Set the maximum number of iterations [ n>x ] (criterion 1)
-			icp.setMaximumIterations(max_iter); //Most likely to happen
-			// Set the transformation difference threshold [delta_t<sqrt(x) or delta_ang<arccos(1-x)] (criterion 2)
-			icp.setTransformationEpsilon(1e-8); //Quite hard to happen
-			// Set the relative RMS difference between two consecutive iterations [ RMS(n)-RMS(n+1)<x*RMS(n) ] (criterion 3)
-			icp.setEuclideanFitnessEpsilon(1e-5); //Quite hard to happen
-
-			icp.align(*TransformedSource);
-
-			transformationS2T = icp.getFinalTransformation();
-
-			t2 = clock();
-
-			if (use_trimmed_rejector)
-				thre_dis = trimmed_cr->getTrimmedDistance();
-			printf("Estimated trimmed distance threshold is %lf.\n", thre_dis);
-
-			mae_nn = icp.getFitnessScore(thre_dis); //Get the Mean Absolute Error (MAE) after registration calculated from Nearest Neighbor Search
-
-			// Commented these out if you don't want to output the registration log
-			cout << "SCloud point # " << SourceCloud->points.size() << " , TCloud point # " << TargetCloud->points.size() << endl;
-			cout << "Point to Point ICP done in " << float(t2 - t0) / CLOCKS_PER_SEC << " s" << endl;
-			cout << "The fitness score of this registration is " << mae_nn << endl
-				 << transformationS2T << endl;
-
-			break;
-		}
-		case Point2Plane:
-		{
-			pcl::PointCloud<pcl::PointXYZ>::Ptr SourceCloudXYZ(new pcl::PointCloud<pcl::PointXYZ>());
-			pcl::PointCloud<pcl::PointXYZ>::Ptr TargetCloudXYZ(new pcl::PointCloud<pcl::PointXYZ>());
-			copyPointCloud(*SourceCloud, *SourceCloudXYZ);
-			copyPointCloud(*TargetCloud, *TargetCloudXYZ);
-			// In this case, The Cloud's Normal hasn't been calculated yet.
-
-			pcl::PointCloud<pcl::PointNormal>::Ptr SourceNormal(new pcl::PointCloud<pcl::PointNormal>());
-			pcl::PointCloud<pcl::PointNormal>::Ptr TargetNormal(new pcl::PointCloud<pcl::PointNormal>());
-			pcl::PointCloud<pcl::PointNormal>::Ptr TransformedSourceN(new pcl::PointCloud<pcl::PointNormal>());
-
-			//Estimate Normal Multi-thread
-			PrincipleComponentAnalysis<pcl::PointXYZ> pca_estimator;
-
-			//Radius search
-			pca_estimator.get_pc_normal_pcar(SourceCloudXYZ, neighbor_radius, SourceNormal);
-			pca_estimator.get_pc_normal_pcar(TargetCloudXYZ, neighbor_radius, TargetNormal);
-			//Or
-			//KNN search
-			//pca_estimator.get_pc_normal_pcak(SourceCloud, covariance_K, SourceNormal);
-			//pca_estimator.get_pc_normal_pcak(TargetCloud, covariance_K, TargetNormal);
-			t1 = clock();
-
-			pcl::IterativeClosestPointWithNormals<pcl::PointNormal, pcl::PointNormal> icp;
-
-			icp.setInputSource(SourceNormal);
-			icp.setInputTarget(TargetNormal);
-
-			if (ce == NS) //Normal Shooting
-			{
-				pcl::registration::CorrespondenceEstimationNormalShooting<pcl::PointNormal, pcl::PointNormal, pcl::PointNormal>::Ptr ns_est(new pcl::registration::CorrespondenceEstimationNormalShooting<pcl::PointNormal, pcl::PointNormal, pcl::PointNormal>);
-				ns_est->setInputSource(SourceNormal);
-				ns_est->setSourceNormals(SourceNormal);
-				ns_est->setInputTarget(TargetNormal);
-				ns_est->setKSearch(5);
-				icp.setCorrespondenceEstimation(ns_est);
-			}
-
-			pcl::registration::TransformationEstimationPointToPlane<pcl::PointNormal, pcl::PointNormal, float>::Ptr te_lmn(new pcl::registration::TransformationEstimationPointToPlane<pcl::PointNormal, pcl::PointNormal, float>);
-			pcl::registration::TransformationEstimationPointToPlaneLLS<pcl::PointNormal, pcl::PointNormal, float>::Ptr te_lls(new pcl::registration::TransformationEstimationPointToPlaneLLS<pcl::PointNormal, pcl::PointNormal, float>);
-			pcl::registration::TransformationEstimationPointToPlaneLLSWeighted<pcl::PointNormal, pcl::PointNormal, float>::Ptr te_lls_weight(new pcl::registration::TransformationEstimationPointToPlaneLLSWeighted<pcl::PointNormal, pcl::PointNormal, float>);
-			switch (te)
-			{
-			case LLS:
-				icp.setTransformationEstimation(te_lls); //Use Linear Least Square
-				break;
-			case LM:
-				icp.setTransformationEstimation(te_lmn); //Use L-M Non-Linear Optimization
-				break;
-			default: //Default lls
-				break;
-			}
-
-			// Use Reciprocal Correspondences or not? [a -> b && b -> a]
-			icp.setUseReciprocalCorrespondences(use_reciprocal_correspondence);
-
-			// Trimmed or not?
-			if (use_trimmed_rejector)
-				icp.addCorrespondenceRejector(trimmed_cr);
-			else
-				icp.setMaxCorrespondenceDistance(thre_dis);
-
-			// Converge criterion ( 'Or' Relation )
-			// Set the maximum number of iterations [ n>x ] (criterion 1)
-			icp.setMaximumIterations(max_iter); //Most likely to happen
-			// Set the transformation difference threshold [delta_t<sqrt(x) or delta_ang<arccos(1-x)] (criterion 2)
-			icp.setTransformationEpsilon(1e-8); //Quite hard to happen
-			// Set the relative RMS difference between two consecutive iterations [ RMS(n)-RMS(n+1)<x*RMS(n) ] (criterion 3)
-			icp.setEuclideanFitnessEpsilon(1e-5); //Quite hard to happen
-
-			icp.align(*TransformedSourceN);
-
-			transformationS2T = icp.getFinalTransformation();
-
-			t2 = clock();
-
-			if (use_trimmed_rejector)
-				thre_dis = trimmed_cr->getTrimmedDistance();
-			printf("Estimated trimmed distance threshold is %lf.\n", thre_dis);
-
-			mae_nn = icp.getFitnessScore(thre_dis); //Get the Mean Absolute Error (MAE) after registration calculated from Nearest Neighbor Search
-
-			// Commented these out if you don't want to output the registration log
-			cout << "SCloud point # " << SourceCloud->points.size() << " , TCloud point # " << TargetCloud->points.size() << endl;
-			cout << "Point-to-Plane ICP done in " << float(t2 - t0) / CLOCKS_PER_SEC << " s" << endl;
-			cout << "Normal Estimation in " << float(t1 - t0) / CLOCKS_PER_SEC << " s, "
-				 << "registration in " << float(t2 - t1) / CLOCKS_PER_SEC << " s." << endl;
-			cout << "The fitness score of this registration is " << mae_nn << endl
-				 << transformationS2T << endl;
-
-			copyPointCloud(*TransformedSourceN, *TransformedSource);
-			pcl::PointCloud<pcl::PointNormal>().swap(*TransformedSourceN); // Free the Memory
-			pcl::PointCloud<pcl::PointNormal>().swap(*SourceNormal);	   // Free the Memory
-			pcl::PointCloud<pcl::PointNormal>().swap(*TargetNormal);	   // Free the Memory
-			pcl::PointCloud<pcl::PointXYZ>().swap(*SourceCloudXYZ);		   // Free the Memory
-			pcl::PointCloud<pcl::PointXYZ>().swap(*TargetCloudXYZ);		   // Free the Memory
-
-			break;
-		}
-		case Plane2Plane:
-		{
-			t1 = clock();
-			pcl::GeneralizedIterativeClosestPoint<PointT, PointT> icp;
-
-			// Set the number of points used to calculated the covariance of a point
-			// icp.setCorrespondenceRandomness(covariance_K);
-			icp.setCorrespondenceRandomness(10);
-
-			icp.setInputSource(SourceCloud);
-			icp.setInputTarget(TargetCloud);
-
-			// Use Reciprocal Correspondences or not? [a -> b && b -> a]
-			icp.setUseReciprocalCorrespondences(use_reciprocal_correspondence);
-
-			// Trimmed or not?
-			if (use_trimmed_rejector)
-				icp.addCorrespondenceRejector(trimmed_cr);
-			else
-				icp.setMaxCorrespondenceDistance(thre_dis);
-
-			icp.setMaximumOptimizerIterations(10);
-
-			// Converge criterion ( 'Or' Relation )
-			// Set the maximum number of iterations [ n>x ] (criterion 1)
-			icp.setMaximumIterations(max_iter); //Most likely to happen
-			// Set the transformation difference threshold [delta_t<sqrt(x) or delta_ang<arccos(1-x)] (criterion 2)
-			icp.setTransformationEpsilon(1e-8); //Quite hard to happen
-			// Set the relative RMS difference between two consecutive iterations [ RMS(n)-RMS(n+1)<x*RMS(n) ] (criterion 3)
-			icp.setEuclideanFitnessEpsilon(1e-5); //Quite hard to happen
-
-			icp.align(*TransformedSource);
-
-			transformationS2T = icp.getFinalTransformation();
-
-			t2 = clock();
-
-			if (use_trimmed_rejector)
-				thre_dis = trimmed_cr->getTrimmedDistance();
-			printf("Estimated trimmed distance threshold is %lf.\n", thre_dis);
-
-			mae_nn = icp.getFitnessScore(thre_dis); //Get the Mean Absolute Error (MAE) after registration calculated from Nearest Neighbor Search
-
-			// Commented these out if you don't want to output the registration log
-			cout << "SCloud point # " << SourceCloud->points.size() << " , TCloud point # " << TargetCloud->points.size() << endl;
-			cout << "Plane-to-Plane ICP done in " << float(t2 - t0) / CLOCKS_PER_SEC << " s" << endl;
-			cout << "The fitness score of this registration is " << mae_nn << endl
-				 << transformationS2T << endl;
-			break;
-		}
-		default:
-			return -1;
-		}
-
-		return mae_nn;
-	}
 
 	/**
 		* \brief Estimated the approximate overlapping ratio for Cloud1 considering Cloud2
@@ -455,7 +220,7 @@ class CRegistration
 			// other properties
 			float cur_i = target_kpts->points[i].intensity;
 			temp_descriptor(8) = (cur_i - intensity_min) / (intensity_max - intensity_min) * 255.0; //[0 - 255] //normalized intensity 
-			temp_descriptor(9) = target_kpts->points[i].normal[3] * 100;							//[0 - 100] //curvature
+			temp_descriptor(9) = target_kpts->points[i].data_c[3] * 100;							//[0 - 100] //curvature
 			temp_descriptor(10) = target_kpts->points[i].data[3] * 30;								//[0 - 100] //height above ground
 			//LOG(INFO) << temp_descriptor[1] << "," << temp_descriptor[2] << "," << temp_descriptor[3] << "," << temp_descriptor[4] << "," << temp_descriptor[5] << "," << temp_descriptor[6] << "," << temp_descriptor[7] << "," << temp_descriptor[8] << "," << temp_descriptor[9] << "," << temp_descriptor[10] << "," << temp_descriptor[11];
 			target_kpts_descriptors.push_back(temp_descriptor);
@@ -479,7 +244,7 @@ class CRegistration
 			// other properties
 			float cur_i = source_kpts->points[i].intensity;
 			temp_descriptor(8) = (cur_i - intensity_min) / (intensity_max - intensity_min) * 255.0; //[0 - 255] //normalized intensity 
-			temp_descriptor(9) = source_kpts->points[i].normal[3] * 100; //[0 - 100] //curvature
+			temp_descriptor(9) = source_kpts->points[i].data_c[3] * 100; //[0 - 100] //curvature
 			temp_descriptor(10) = source_kpts->points[i].data[3] * 30;   //[0 - 100] //height above ground
 			//LOG(INFO) << temp_descriptor[1] << "," << temp_descriptor[2] << "," << temp_descriptor[3] << "," << temp_descriptor[4] << "," << temp_descriptor[5] << "," << temp_descriptor[6] << "," << temp_descriptor[7] << "," << temp_descriptor[8] << "," << temp_descriptor[9] << "," << temp_descriptor[10] << "," << temp_descriptor[11];
 			source_kpts_descriptors.push_back(temp_descriptor);
@@ -873,69 +638,6 @@ class CRegistration
 		registration_cons.block1 = block_1; //target
 		registration_cons.block2 = block_2; //source
     return true;
-	}
-
-	//interface for the implement of basic icp algorithm using pcl
-	int pcl_icp(Constraint &registration_cons,
-				int max_iter_num, float dis_thre_unit,
-				DistMetricType metrics, CorresEstimationType ce, TransformEstimationType te,
-				bool use_reciprocal_correspondence, bool use_trimmed_rejector, float neighbor_radius = 2.0,
-				Eigen::Matrix4d initial_guess = Eigen::Matrix4d::Identity(), bool apply_intersection_filter = true,
-				float fitness_score_thre = 10.0)
-	{
-		CFilter<PointT> cfilter;
-
-		int process_code = 0;
-
-		typename pcl::PointCloud<PointT>::Ptr cloud_t_down(new pcl::PointCloud<PointT>);
-		typename pcl::PointCloud<PointT>::Ptr cloud_s_down(new pcl::PointCloud<PointT>);
-		typename pcl::PointCloud<PointT>::Ptr cloud_s_guess(new pcl::PointCloud<PointT>);
-		typename pcl::PointCloud<PointT>::Ptr cloud_s_tran(new pcl::PointCloud<PointT>);
-
-		registration_cons.block1->clone_cloud(cloud_t_down, true); //target
-		registration_cons.block2->clone_cloud(cloud_s_down, true); //source
-
-		Bounds intersection_bbx, source_guess_bbx;
-		bool apply_source_initial_guess = false;
-		if (!initial_guess.isIdentity(1e-6))
-		{
-			//Transform the Source pointcloud
-			pcl::transformPointCloudWithNormals(*cloud_s_down, *cloud_s_guess, initial_guess);
-			get_cloud_bbx(cloud_s_guess, source_guess_bbx);
-			get_intersection_bbx(registration_cons.block1->local_bound, source_guess_bbx, intersection_bbx);
-			LOG(INFO) << "Apply initial guess transformation\n"
-					  << initial_guess;
-			apply_source_initial_guess = true;
-		}
-		else
-			get_intersection_bbx(registration_cons.block1->local_bound, registration_cons.block2->local_bound, intersection_bbx);
-
-		if (apply_intersection_filter)
-			get_cloud_pair_intersection(intersection_bbx, cloud_t_down, cloud_s_guess);
-
-		Eigen::Matrix4d Trans_t_sg;
-		double fitness_score;
-		fitness_score = icp_registration(cloud_s_guess, cloud_t_down,
-										 cloud_s_tran, Trans_t_sg, metrics, ce, te,
-										 use_reciprocal_correspondence, use_trimmed_rejector,
-										 max_iter_num, dis_thre_unit, neighbor_radius);
-
-		if (fitness_score > fitness_score_thre)
-			process_code = -3;
-		else
-			process_code = 1;
-
-		if (apply_source_initial_guess)
-			Trans_t_sg = Trans_t_sg * initial_guess;
-
-		registration_cons.Trans1_2 = Trans_t_sg;
-
-		pcl::PointCloud<PointT>().swap(*cloud_s_guess);
-		pcl::PointCloud<PointT>().swap(*cloud_s_tran);
-		pcl::PointCloud<PointT>().swap(*cloud_t_down);
-		pcl::PointCloud<PointT>().swap(*cloud_s_down);
-
-		return process_code;
 	}
 
 	//--------------------------------------------------------------------------------------------------------------------------//
@@ -1564,8 +1266,8 @@ class CRegistration
 		typename pcl::PointCloud<PointT>::Ptr Source_Cloud_f(new pcl::PointCloud<PointT>);
 		typename pcl::PointCloud<PointT>::Ptr Target_Cloud_f(new pcl::PointCloud<PointT>); //target point cloud would never change
 
-		if (Source_Cloud->points.size() >= K_min &&
-			Target_Cloud->points.size() >= K_min)
+		if (Source_Cloud->points.size() >= size_t(K_min) &&
+			Target_Cloud->points.size() >= size_t(K_min))
 		{
 			if (normal_shooting_on) // Normal Shooting
 			{
@@ -1592,7 +1294,7 @@ class CRegistration
 
 			//Filter outlier source points (they would not appear throughout the registration anymore)
 #if 1
-			if (Source_Cloud->points.size() >= K_filter_distant_point)
+			if (Source_Cloud->points.size() >= size_t(K_filter_distant_point))
 			{
 				int count = 0;
 
@@ -2388,7 +2090,7 @@ class CRegistration
 	{
 		//point-to-plane distance metrics
 		//3 observation equation for 1 pair of correspondence
-		for (int i = 0; i < (*Corr).size(); i++)
+		for (size_t i = 0u; i < (*Corr).size(); i++)
 		{
 			int s_index, t_index;
 			s_index = (*Corr)[i].index_query;
@@ -2432,7 +2134,7 @@ class CRegistration
 	{
 		//point-to-plane distance metrics
 		//1 observation equation for 1 pair of correspondence
-		for (int i = 0; i < (*Corr).size(); i++)
+		for (size_t i = 0u; i < (*Corr).size(); i++)
 		{
 			int s_index, t_index;
 			s_index = (*Corr)[i].index_query;
@@ -2473,7 +2175,7 @@ class CRegistration
 	{
 		//point-to-line distance metrics
 		//3 observation equation for 1 pair of correspondence
-		for (int i = 0; i < (*Corr).size(); i++)
+		for (size_t i = 0u; i < (*Corr).size(); i++)
 		{
 			int s_index, t_index;
 			s_index = (*Corr)[i].index_query;

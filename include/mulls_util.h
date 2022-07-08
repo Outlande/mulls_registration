@@ -38,6 +38,39 @@ typedef Eigen::Matrix<double, 6, 6> Matrix6d;
 namespace mulls
 {
 
+// Eigen Value ,lamada1 > lamada2 > lamada3;
+struct eigenvalue_t {
+	double lamada1;
+	double lamada2;
+	double lamada3;
+};
+
+//the eigen vector corresponding to the eigen value
+struct eigenvector_t {
+	Eigen::Vector3f principalDirection;
+	Eigen::Vector3f middleDirection;
+	Eigen::Vector3f normalDirection;
+};
+
+// PCA results
+struct pca_feature_t {
+	eigenvalue_t values;
+	eigenvector_t vectors;
+	double curvature;
+	double linear;
+	double planar;
+	double spherical;
+	double linear_2;
+	double planar_2;
+	double spherical_2;
+	double normal_diff_ang_deg;
+	pcl::PointNormal pt;
+	int ptId;
+	int pt_num = 0;
+	std::vector<int> neighbor_indices;
+	std::vector<bool> close_to_query_point;
+};
+
 struct CenterPoint {
 	double x;
 	double y;

@@ -32,11 +32,9 @@ class CFilter
   public:
 	struct idpair_t
 	{
-		idpair_t() : idx(0), voxel_idx(0) {}
-
-		unsigned long long voxel_idx;
 		int idx;
-
+		unsigned long long voxel_idx;
+		idpair_t() : idx(0), voxel_idx(0u) {}		
 		bool operator<(const idpair_t &pair) { return voxel_idx < pair.voxel_idx; }
 	};
 
@@ -603,7 +601,7 @@ class CFilter
 	//when keep_number == 0, the output point cloud would be empty (in other words, the input point cloud would be cleared)
 	bool random_downsample_pcl(typename pcl::PointCloud<PointT>::Ptr &cloud_in_out, int keep_number)
 	{
-		if (cloud_in_out->points.size() <= keep_number)
+		if (cloud_in_out->points.size() <= size_t(keep_number))
 			return false;
 		else
 		{
@@ -685,7 +683,7 @@ class CFilter
 	{
 		std::chrono::steady_clock::time_point tic = std::chrono::steady_clock::now();
 
-		if (cloud_in->points.size() <= keep_number)
+		if (cloud_in->points.size() <= size_t(keep_number))
 		{
 			cloud_out = cloud_in;
 			return false;
@@ -714,7 +712,7 @@ class CFilter
 		if (downsample_ratio > 1)
 		{
 			cloud_out->points.clear();
-			for (int i = 0; i < cloud_in->points.size(); i++)
+			for (size_t i = 0u; i < cloud_in->points.size(); i++)
 			{
 				if (i % downsample_ratio == 0)
 					cloud_out->points.push_back(cloud_in->points[i]);
@@ -1086,7 +1084,7 @@ class CFilter
 				float accu_intensity = 0.0;
 				PointT pt;
 				pt = cloud_in->points[i];
-				pt.normal[3] = features[i].curvature; //save in normal[3]
+				pt.data_c[3] = features[i].curvature; //save in data_c[3]
 
 				int neighbor_total_count = 0, pillar_count = 0, beam_count = 0, facade_count = 0, roof_count = 0;
 				int pillar_close_count = 0, pillar_far_count = 0, beam_close_count = 0, beam_far_count = 0, facade_close_count = 0, facade_far_count = 0, roof_close_count = 0, roof_far_count = 0;
@@ -1166,7 +1164,7 @@ class CFilter
 				pt.normal[1] = descriptor_2;
 
 				pt.intensity = accu_intensity / neighbor_total_count; //mean intensity of the nrighborhood
-																	  //pt.normal[3] store the point curvature
+																	  //pt.data_c[3] store the point curvature
 																	  //pt.data[3] store the height of the point above the ground
 
 				//!!! TODO: fix, use customed point type, you need a lot of porperties for saving linearity, planarity, curvature, semantic label and timestamp
@@ -1188,7 +1186,7 @@ class CFilter
 		if (pt_count_before < 10)
 			return false;
 
-		std::sort(cloud_in_out->points.begin(), cloud_in_out->points.end(), [](const PointT &a, const PointT &b) { return a.normal[3] > b.normal[3]; });
+		std::sort(cloud_in_out->points.begin(), cloud_in_out->points.end(), [](const PointT &a, const PointT &b) { return a.data_c[3] > b.data_c[3]; });
 
 		std::set<int, std::less<int>> unVisitedPtId;
 		std::set<int, std::less<int>>::iterator iterUnseg;
@@ -1250,7 +1248,7 @@ class CFilter
 		if (pt_count_before < 10)
 			return false;
 
-		std::sort(cloud_in->points.begin(), cloud_in->points.end(), [](const PointT &a, const PointT &b) { return a.normal[3] > b.normal[3]; }); //using the unused normal[3] to represent what we want
+		std::sort(cloud_in->points.begin(), cloud_in->points.end(), [](const PointT &a, const PointT &b) { return a.data_c[3] > b.data_c[3]; }); //using the unused data_c[3] to represent what we want
 
 		std::set<int, std::less<int>> unVisitedPtId;
 		std::set<int, std::less<int>>::iterator iterUnseg;
@@ -1686,7 +1684,7 @@ class CFilter
 		// int nonground_random_down_rate_temp = nonground_random_down_rate;
 
 		//For some points,  calculating the approximate mean height
-		for (int j = 0; j < cloud_in->points.size(); j++)
+		for (size_t j = 0u; j < cloud_in->points.size(); j++)
 		{
 			if (j % 100 == 0)
 			{
@@ -1710,8 +1708,6 @@ class CFilter
 		col = ceil((bounds.max_x - bounds.min_x) / grid_resolution);
 		num_grid = row * col;
 
-		std::chrono::steady_clock::time_point toc_1_1 = std::chrono::steady_clock::now();
-
 		grid_t *grid = new grid_t[num_grid];
 
 		//Each grid
@@ -1722,7 +1718,7 @@ class CFilter
 		}
 
 		//Each point ---> determine the grid to which the point belongs
-		for (int j = 0; j < cloud_in->points.size(); j++)
+		for (size_t j = 0u; j < cloud_in->points.size(); j++)
 		{
 			int temp_row, temp_col, temp_id;
 			temp_col = floor((cloud_in->points[j].x - bounds.min_x) / grid_resolution);
@@ -1762,7 +1758,6 @@ class CFilter
 				}
 			}
 		}
-		std::chrono::steady_clock::time_point toc_1_2 = std::chrono::steady_clock::now();
 
 		if (apply_grid_wise_outlier_filter)
 		{
@@ -1772,10 +1767,10 @@ class CFilter
 				if (grid[i].pts_count >= min_grid_pt_num)
 				{
 					double sum_z = 0, sum_z2 = 0, std_z = 0, mean_z = 0;
-					for (int j = 0; j < grid[i].point_id.size(); j++)
+					for (size_t j = 0u; j < grid[i].point_id.size(); j++)
 						sum_z += cloud_in->points[grid[i].point_id[j]].z;
 					mean_z = sum_z / grid[i].pts_count;
-					for (int j = 0; j < grid[i].point_id.size(); j++)
+					for (size_t j = 0u; j < grid[i].point_id.size(); j++)
 						sum_z2 += (cloud_in->points[grid[i].point_id[j]].z - mean_z) * (cloud_in->points[grid[i].point_id[j]].z - mean_z);
 					std_z = std::sqrt(sum_z2 / grid[i].pts_count);
 					grid[i].min_z_outlier_thre = mean_z - outlier_std_scale * std_z;
@@ -1784,8 +1779,6 @@ class CFilter
 				}
 			}
 		}
-
-		std::chrono::steady_clock::time_point toc_1_3 = std::chrono::steady_clock::now();
 
 		//Each grid
 		for (int m = 0; m < num_grid; m++)
@@ -1808,8 +1801,6 @@ class CFilter
 		}
 
 		double consuming_time_ransac = 0.0;
-
-		std::chrono::steady_clock::time_point toc_1_4 = std::chrono::steady_clock::now();
 
 		std::vector<typename pcl::PointCloud<PointT>::Ptr> grid_ground_pcs(num_grid);
 		std::vector<typename pcl::PointCloud<PointT>::Ptr> grid_unground_pcs(num_grid);
@@ -1848,7 +1839,7 @@ class CFilter
 				//LOG(WARNING) << ground_random_down_rate_temp << "," << nonground_random_down_rate_temp;
 				if (grid[i].min_z - grid[i].neighbor_min_z < neighbor_height_diff)
 				{
-					for (int j = 0; j < grid[i].point_id.size(); j++)
+					for (size_t j = 0u; j < grid[i].point_id.size(); j++)
 					{
 						if (cloud_in->points[grid[i].point_id[j]].z > grid[i].min_z_outlier_thre)
 						{
@@ -1886,7 +1877,7 @@ class CFilter
 				}
 				else //unground grid
 				{
-					for (int j = 0; j < grid[i].point_id.size(); j++)
+					for (size_t j = 0u; j < grid[i].point_id.size(); j++)
 					{
 						if (cloud_in->points[grid[i].point_id[j]].z > grid[i].min_z_outlier_thre &&
 							(j % nonground_random_down_rate_temp == 0 || cloud_in->points[grid[i].point_id[j]].intensity > intensity_thre))
@@ -1897,7 +1888,7 @@ class CFilter
 						}
 					}
 				}
-				if (estimate_ground_normal_method == 3 && grid_ground->points.size() >= min_grid_pt_num)
+				if (estimate_ground_normal_method == 3 && grid_ground->points.size() >= size_t(min_grid_pt_num))
 				{
 					std::chrono::steady_clock::time_point tic_ransac = std::chrono::steady_clock::now();
 					float normal_x, normal_y, normal_z;
@@ -1906,7 +1897,7 @@ class CFilter
 					//r is the inlier ratio (> 0.75 in our case), N is 3 in our case (3 points can fit a plane), to get a confidence > 0.99, we need about 20 iteration (M=20)
 					estimate_ground_normal_by_ransac(grid_ground, 0.3 * max_height_difference, 20, normal_x, normal_y, normal_z);
 
-					for (int j = 0; j < grid_ground->points.size(); j++)
+					for (size_t j = 0u; j < grid_ground->points.size(); j++)
 					{
 						if (j % ground_random_down_rate_temp == 0 && std::abs(normal_z) > 0.8) //53 deg
 						{
@@ -1944,7 +1935,7 @@ class CFilter
 		else if (estimate_ground_normal_method == 2)
 			pca_estimator.get_normal_pcak(cloud_ground, normal_estimation_neighbor_k, ground_normal);
 
-		for (int i = 0; i < cloud_ground->points.size(); i++)
+		for (size_t i = 0u; i < cloud_ground->points.size(); i++)
 		{
 			if (estimate_ground_normal_method == 1 || estimate_ground_normal_method == 2)
 			{
@@ -2174,7 +2165,7 @@ class CFilter
 		if (extract_vertex_points_method == 2)
 		{
 			float vertex_feature_ratio_thre = feature_pts_ratio_guess / pca_down_rate;
-			for (int i = 0; i < cloud_in->points.size(); i++)
+			for (size_t i = 0u; i < cloud_in->points.size(); i++)
 			{
 				// if (index_with_feature[i] == 0)
 				// 	cloud_vertex->points.push_back(cloud_in->points[i]);
@@ -2182,7 +2173,7 @@ class CFilter
 				if (index_with_feature[i] == 0 && cloud_features[i].pt_num > neigh_k_min && cloud_features[i].curvature > curvature_thre) //curvature_thre means curvature_thre here
 				{
 					int geo_feature_point_count = 0;
-					for (int j = 0; j < cloud_features[i].neighbor_indices.size(); j++)
+					for (size_t j = 0u; j < cloud_features[i].neighbor_indices.size(); j++)
 					{
 						if (index_with_feature[cloud_features[i].neighbor_indices[j]])
 							geo_feature_point_count++;
@@ -2193,7 +2184,7 @@ class CFilter
 						//cloud_vertex->points.push_back(cloud_in->points[i]);
 
 						pca_estimator.assign_normal(cloud_in->points[i], cloud_features[i], false);
-						cloud_in->points[i].normal[3] = 5.0 * cloud_features[i].curvature; //save in the un-used normal[3]  (PointNormal4D)
+						cloud_in->points[i].data_c[3] = 5.0 * cloud_features[i].curvature; //save in the un-used data_c[3]  (PointNormal4D)
 						if (std::abs(cloud_features[i].vectors.principalDirection.z()) > linear_vertical_sin_high_thre)
 						{
 							cloud_pillar->points.push_back(cloud_in->points[i]);
@@ -2510,7 +2501,7 @@ class CFilter
 		if (mask_feature_type[0] == '1') //ground
 		{
 			typename pcl::PointCloud<PointT>::Ptr cloud_temp(new pcl::PointCloud<PointT>);
-			for (int i = 0; i < in_block->pc_ground->points.size(); i++)
+			for (size_t i = 0u; i < in_block->pc_ground->points.size(); i++)
 			{
 				int label = (int)(in_block->pc_ground->points[i].curvature);
 				float dist2 = in_block->pc_ground->points[i].x * in_block->pc_ground->points[i].x + in_block->pc_ground->points[i].y * in_block->pc_ground->points[i].y;
@@ -2520,7 +2511,7 @@ class CFilter
 			cloud_temp->points.swap(in_block->pc_ground->points);
 
 			typename pcl::PointCloud<PointT>::Ptr cloud_temp2(new pcl::PointCloud<PointT>);
-			for (int i = 0; i < in_block->pc_ground_down->points.size(); i++)
+			for (size_t i = 0u; i < in_block->pc_ground_down->points.size(); i++)
 			{
 				int label = (int)(in_block->pc_ground_down->points[i].curvature);
 				float dist2 = in_block->pc_ground_down->points[i].x * in_block->pc_ground_down->points[i].x + in_block->pc_ground_down->points[i].y * in_block->pc_ground_down->points[i].y;
@@ -2533,7 +2524,7 @@ class CFilter
 		if (mask_feature_type[2] == '1') //facade
 		{
 			typename pcl::PointCloud<PointT>::Ptr cloud_temp3(new pcl::PointCloud<PointT>);
-			for (int i = 0; i < in_block->pc_facade->points.size(); i++)
+			for (size_t i = 0u; i < in_block->pc_facade->points.size(); i++)
 			{
 				int label = (int)(in_block->pc_facade->points[i].curvature);
 				float dist2 = in_block->pc_facade->points[i].x * in_block->pc_facade->points[i].x + in_block->pc_facade->points[i].y * in_block->pc_facade->points[i].y;
@@ -2543,7 +2534,7 @@ class CFilter
 			cloud_temp3->points.swap(in_block->pc_facade->points);
 
 			typename pcl::PointCloud<PointT>::Ptr cloud_temp4(new pcl::PointCloud<PointT>);
-			for (int i = 0; i < in_block->pc_facade_down->points.size(); i++)
+			for (size_t i = 0u; i < in_block->pc_facade_down->points.size(); i++)
 			{
 				int label = (int)(in_block->pc_facade_down->points[i].curvature);
 				float dist2 = in_block->pc_facade_down->points[i].x * in_block->pc_facade_down->points[i].x + in_block->pc_facade_down->points[i].y * in_block->pc_facade_down->points[i].y;
@@ -2556,7 +2547,7 @@ class CFilter
 		if (mask_feature_type[1] == '1') //pillar
 		{
 			typename pcl::PointCloud<PointT>::Ptr cloud_temp5(new pcl::PointCloud<PointT>);
-			for (int i = 0; i < in_block->pc_pillar->points.size(); i++)
+			for (size_t i = 0u; i < in_block->pc_pillar->points.size(); i++)
 			{
 				int label = (int)(in_block->pc_pillar->points[i].curvature);
 				float dist2 = in_block->pc_pillar->points[i].x * in_block->pc_pillar->points[i].x + in_block->pc_pillar->points[i].y * in_block->pc_pillar->points[i].y;
@@ -2566,7 +2557,7 @@ class CFilter
 			cloud_temp5->points.swap(in_block->pc_pillar->points);
 
 			typename pcl::PointCloud<PointT>::Ptr cloud_temp6(new pcl::PointCloud<PointT>);
-			for (int i = 0; i < in_block->pc_pillar_down->points.size(); i++)
+			for (size_t i = 0u; i < in_block->pc_pillar_down->points.size(); i++)
 			{
 				int label = (int)(in_block->pc_pillar_down->points[i].curvature);
 				float dist2 = in_block->pc_pillar_down->points[i].x * in_block->pc_pillar_down->points[i].x + in_block->pc_pillar_down->points[i].y * in_block->pc_pillar_down->points[i].y;
@@ -2579,7 +2570,7 @@ class CFilter
 		if (mask_feature_type[3] == '1') //beam
 		{
 			typename pcl::PointCloud<PointT>::Ptr cloud_temp7(new pcl::PointCloud<PointT>);
-			for (int i = 0; i < in_block->pc_beam->points.size(); i++)
+			for (size_t i = 0u; i < in_block->pc_beam->points.size(); i++)
 			{
 				int label = (int)(in_block->pc_beam->points[i].curvature);
 				float dist2 = in_block->pc_beam->points[i].x * in_block->pc_beam->points[i].x + in_block->pc_beam->points[i].y * in_block->pc_beam->points[i].y;
@@ -2589,7 +2580,7 @@ class CFilter
 			cloud_temp7->points.swap(in_block->pc_beam->points);
 
 			typename pcl::PointCloud<PointT>::Ptr cloud_temp8(new pcl::PointCloud<PointT>);
-			for (int i = 0; i < in_block->pc_beam_down->points.size(); i++)
+			for (size_t i = 0u; i < in_block->pc_beam_down->points.size(); i++)
 			{
 				int label = (int)(in_block->pc_beam_down->points[i].curvature);
 				float dist2 = in_block->pc_beam_down->points[i].x * in_block->pc_beam_down->points[i].x + in_block->pc_beam_down->points[i].y * in_block->pc_beam_down->points[i].y;

@@ -1,12 +1,9 @@
 #include "mulls_util.h"
 
-
-
 namespace mulls
 {
 
-CloudBlock::CloudBlock()
-{
+CloudBlock::CloudBlock() {
 	init();
 	//default value
 	station_position_available = false;
@@ -19,13 +16,11 @@ CloudBlock::CloudBlock()
 	information_matrix_to_next.setIdentity();
 }
 
-CloudBlock::CloudBlock(const CloudBlock &in_block, bool clone_feature, bool clone_raw)
-{
+CloudBlock::CloudBlock(const CloudBlock &in_block, bool clone_feature, bool clone_raw) {
 	init();
 	clone_metadata(in_block);
 
-	if (clone_feature)
-	{
+	if (clone_feature) {
 		//clone point cloud (instead of pointer)
 		*pc_ground = *(in_block.pc_ground);
 		*pc_pillar = *(in_block.pc_pillar);
@@ -35,12 +30,12 @@ CloudBlock::CloudBlock(const CloudBlock &in_block, bool clone_feature, bool clon
 		*pc_vertex = *(in_block.pc_vertex);
 		// keypoint_bsc = in_block.keypoint_bsc;
 	}
-	if (clone_raw)
+	if (clone_raw) {
 		*pc_raw = *(in_block.pc_raw);
+	}
 }
 
-void CloudBlock::init()
-{
+void CloudBlock::init() {
 	pc_raw = boost::make_shared<pcT>();
 	pc_down = boost::make_shared<pcT>();
 	pc_raw_w = boost::make_shared<pcT>();
@@ -61,15 +56,11 @@ void CloudBlock::init()
 	pc_beam_down = boost::make_shared<pcT>();
 
 	init_tree();
-
-	//doubleVectorSBF().swap(keypoint_bsc);
-
 	down_feature_point_num = 0;
 	feature_point_num = 0;
 }
 
-void CloudBlock::init_tree()
-{
+void CloudBlock::init_tree() {
 	tree_ground = boost::make_shared<pcTree>();
 	tree_facade = boost::make_shared<pcTree>();
 	tree_pillar = boost::make_shared<pcTree>();
@@ -78,15 +69,13 @@ void CloudBlock::init_tree()
 	tree_vertex = boost::make_shared<pcTree>();
 }
 
-void CloudBlock::free_raw_cloud()
-{
+void CloudBlock::free_raw_cloud() {
 	pc_raw.reset(new pcT());
 	pc_down.reset(new pcT());
 	pc_unground.reset(new pcT());
 }
 
-void CloudBlock::free_tree()
-{
+void CloudBlock::free_tree() {
 	tree_ground.reset(new pcTree());
 	tree_facade.reset(new pcTree());
 	tree_pillar.reset(new pcTree());
@@ -95,8 +84,7 @@ void CloudBlock::free_tree()
 	tree_vertex.reset(new pcTree());
 }
 
-void CloudBlock::free_all()
-{
+void CloudBlock::free_all() {
 	free_raw_cloud();
 	free_tree();
 	pc_ground.reset(new pcT());
@@ -112,11 +100,9 @@ void CloudBlock::free_all()
 	pc_roof_down.reset(new pcT());
 	pc_sketch.reset(new pcT());
 	pc_raw_w.reset(new pcT());
-	//doubleVectorSBF().swap(keypoint_bsc);
 }
 
-void CloudBlock::clone_metadata(const CloudBlock &in_cblock)
-{
+void CloudBlock::clone_metadata(const CloudBlock &in_cblock) {
 	feature_point_num = in_cblock.feature_point_num;
 	bound = in_cblock.bound;
 	local_bound = in_cblock.local_bound;
@@ -130,11 +116,8 @@ void CloudBlock::clone_metadata(const CloudBlock &in_cblock)
 	filename = in_cblock.filename;
 }
 
-void CloudBlock::append_feature(const CloudBlock &in_cblock, bool append_down, std::string used_feature_type)
-{
-	//pc_raw->points.insert(pc_raw->points.end(), in_cblock.pc_raw->points.begin(), in_cblock.pc_raw->points.end());
-	if (!append_down)
-	{
+void CloudBlock::append_feature(const CloudBlock &in_cblock, bool append_down, std::string used_feature_type) {
+	if (!append_down) {
 		if (used_feature_type[0] == '1')
 			pc_ground->points.insert(pc_ground->points.end(), in_cblock.pc_ground->points.begin(), in_cblock.pc_ground->points.end());
 		if (used_feature_type[1] == '1')
@@ -146,9 +129,7 @@ void CloudBlock::append_feature(const CloudBlock &in_cblock, bool append_down, s
 		if (used_feature_type[4] == '1')
 			pc_roof->points.insert(pc_roof->points.end(), in_cblock.pc_roof->points.begin(), in_cblock.pc_roof->points.end());
 		pc_vertex->points.insert(pc_vertex->points.end(), in_cblock.pc_vertex->points.begin(), in_cblock.pc_vertex->points.end());
-	}
-	else
-	{
+	} else {
 		if (used_feature_type[0] == '1')
 			pc_ground->points.insert(pc_ground->points.end(), in_cblock.pc_ground_down->points.begin(), in_cblock.pc_ground_down->points.end());
 		if (used_feature_type[1] == '1')
@@ -163,10 +144,8 @@ void CloudBlock::append_feature(const CloudBlock &in_cblock, bool append_down, s
 	}
 }
 
-void CloudBlock::merge_feature_points(pcTPtr &pc_out, bool merge_down, bool with_out_ground)
-{
-	if (!merge_down)
-	{
+void CloudBlock::merge_feature_points(pcTPtr &pc_out, bool merge_down, bool with_out_ground) {
+	if (!merge_down) {
 		if (!with_out_ground)
 			pc_out->points.insert(pc_out->points.end(), pc_ground->points.begin(), pc_ground->points.end());
 		pc_out->points.insert(pc_out->points.end(), pc_facade->points.begin(), pc_facade->points.end());
@@ -174,9 +153,7 @@ void CloudBlock::merge_feature_points(pcTPtr &pc_out, bool merge_down, bool with
 		pc_out->points.insert(pc_out->points.end(), pc_beam->points.begin(), pc_beam->points.end());
 		pc_out->points.insert(pc_out->points.end(), pc_roof->points.begin(), pc_roof->points.end());
 		pc_out->points.insert(pc_out->points.end(), pc_vertex->points.begin(), pc_vertex->points.end());
-	}
-	else
-	{
+	} else {
 		if (!with_out_ground)
 			pc_out->points.insert(pc_out->points.end(), pc_ground_down->points.begin(), pc_ground_down->points.end());
 		pc_out->points.insert(pc_out->points.end(), pc_facade_down->points.begin(), pc_facade_down->points.end());
@@ -187,10 +164,8 @@ void CloudBlock::merge_feature_points(pcTPtr &pc_out, bool merge_down, bool with
 	}
 }
 
-void CloudBlock::transform_feature(const Eigen::Matrix4d &trans_mat, bool transform_down, bool transform_undown)
-{
-	if (transform_undown)
-	{
+void CloudBlock::transform_feature(const Eigen::Matrix4d &trans_mat, bool transform_down, bool transform_undown) {
+	if (transform_undown) {
 		pcl::transformPointCloudWithNormals(*pc_ground, *pc_ground, trans_mat);
 		pcl::transformPointCloudWithNormals(*pc_pillar, *pc_pillar, trans_mat);
 		pcl::transformPointCloudWithNormals(*pc_beam, *pc_beam, trans_mat);
@@ -198,8 +173,7 @@ void CloudBlock::transform_feature(const Eigen::Matrix4d &trans_mat, bool transf
 		pcl::transformPointCloudWithNormals(*pc_roof, *pc_roof, trans_mat);
 		pcl::transformPointCloudWithNormals(*pc_vertex, *pc_vertex, trans_mat);
 	}
-	if (transform_down)
-	{
+	if (transform_down) {
 		pcl::transformPointCloudWithNormals(*pc_ground_down, *pc_ground_down, trans_mat);
 		pcl::transformPointCloudWithNormals(*pc_pillar_down, *pc_pillar_down, trans_mat);
 		pcl::transformPointCloudWithNormals(*pc_beam_down, *pc_beam_down, trans_mat);
@@ -208,8 +182,7 @@ void CloudBlock::transform_feature(const Eigen::Matrix4d &trans_mat, bool transf
 	}
 }
 
-void CloudBlock::clone_cloud(pcTPtr &pc_out, bool get_pc_done)
-{
+void CloudBlock::clone_cloud(pcTPtr &pc_out, bool get_pc_done) {
 	if (get_pc_done)
 		pc_out->points.insert(pc_out->points.end(), pc_down->points.begin(), pc_down->points.end());
 	else
@@ -217,24 +190,19 @@ void CloudBlock::clone_cloud(pcTPtr &pc_out, bool get_pc_done)
 }
 
 void CloudBlock::clone_feature(pcTPtr &pc_ground_out,
-					pcTPtr &pc_pillar_out,
-					pcTPtr &pc_beam_out,
-					pcTPtr &pc_facade_out,
-					pcTPtr &pc_roof_out,
-					pcTPtr &pc_vertex_out, bool get_feature_down)
-
-{
-	if (get_feature_down)
-	{
+							   pcTPtr &pc_pillar_out,
+							   pcTPtr &pc_beam_out,
+							   pcTPtr &pc_facade_out,
+							   pcTPtr &pc_roof_out,
+							   pcTPtr &pc_vertex_out, bool get_feature_down) {
+	if (get_feature_down) {
 		*pc_ground_out = *pc_ground_down;
 		*pc_pillar_out = *pc_pillar_down;
 		*pc_beam_out = *pc_beam_down;
 		*pc_facade_out = *pc_facade_down;
 		*pc_roof_out = *pc_roof_down;
 		*pc_vertex_out = *pc_vertex;
-	}
-	else
-	{
+	} else {
 		*pc_ground_out = *pc_ground;
 		*pc_pillar_out = *pc_pillar;
 		*pc_beam_out = *pc_beam;
@@ -245,8 +213,7 @@ void CloudBlock::clone_feature(pcTPtr &pc_ground_out,
 }
 
 //Get Bound of a Point Cloud
-void get_cloud_bbx(const pcl::PointCloud<MullsPoint>::Ptr &cloud, Bounds &bound)
-{
+void get_cloud_bbx(const pcl::PointCloud<MullsPoint>::Ptr &cloud, Bounds &bound) {
 	double min_x = DBL_MAX;
 	double min_y = DBL_MAX;
 	double min_z = DBL_MAX;
@@ -254,8 +221,7 @@ void get_cloud_bbx(const pcl::PointCloud<MullsPoint>::Ptr &cloud, Bounds &bound)
 	double max_y = -DBL_MAX;
 	double max_z = -DBL_MAX;
 
-	for (size_t i = 0u; i < cloud->points.size(); i++)
-	{
+	for (size_t i = 0u; i < cloud->points.size(); i++) {
 		if (min_x > cloud->points[i].x)
 			min_x = cloud->points[i].x;
 		if (min_y > cloud->points[i].y)
@@ -277,8 +243,7 @@ void get_cloud_bbx(const pcl::PointCloud<MullsPoint>::Ptr &cloud, Bounds &bound)
 	bound.max_z = max_z;
 }
 
-void get_cloud_bbx_cpt(const pcl::PointCloud<MullsPoint>::Ptr &cloud, Bounds &bound, CenterPoint &cp)
-{
+void get_cloud_bbx_cpt(const pcl::PointCloud<MullsPoint>::Ptr &cloud, Bounds &bound, CenterPoint &cp) {
 	get_cloud_bbx(cloud, bound);
 	cp.x = 0.5 * (bound.min_x + bound.max_x);
 	cp.y = 0.5 * (bound.min_y + bound.max_y);
@@ -286,13 +251,11 @@ void get_cloud_bbx_cpt(const pcl::PointCloud<MullsPoint>::Ptr &cloud, Bounds &bo
 }
 
 //Get Center of a Point Cloud
-void get_cloud_cpt(const typename pcl::PointCloud<MullsPoint>::Ptr &cloud, CenterPoint &cp)
-{
+void get_cloud_cpt(const typename pcl::PointCloud<MullsPoint>::Ptr &cloud, CenterPoint &cp) {
 	double cx = 0, cy = 0, cz = 0;
 	int point_num = cloud->points.size();
 
-	for (int i = 0; i < point_num; i++)
-	{
+	for (int i = 0; i < point_num; i++) {
 		cx += cloud->points[i].x / point_num;
 		cy += cloud->points[i].y / point_num;
 		cz += cloud->points[i].z / point_num;
@@ -302,8 +265,7 @@ void get_cloud_cpt(const typename pcl::PointCloud<MullsPoint>::Ptr &cloud, Cente
 	cp.z = cz;
 }
 
-void get_intersection_bbx(Bounds &bbx_1, Bounds &bbx_2, Bounds &bbx_intersection, float bbx_boundary_pad)
-{
+void get_intersection_bbx(Bounds &bbx_1, Bounds &bbx_2, Bounds &bbx_intersection, float bbx_boundary_pad) {
 	bbx_intersection.min_x = std::max(bbx_1.min_x, bbx_2.min_x) - bbx_boundary_pad;
 	bbx_intersection.min_y = std::max(bbx_1.min_y, bbx_2.min_y) - bbx_boundary_pad;
 	bbx_intersection.min_z = std::max(bbx_1.min_z, bbx_2.min_z) - bbx_boundary_pad;
@@ -312,8 +274,7 @@ void get_intersection_bbx(Bounds &bbx_1, Bounds &bbx_2, Bounds &bbx_intersection
 	bbx_intersection.max_z = std::min(bbx_1.max_z, bbx_2.max_z) + bbx_boundary_pad;
 }
 
-void merge_bbx(std::vector<Bounds> &bbxs, Bounds &bbx_merged)
-{
+void merge_bbx(std::vector<Bounds> &bbxs, Bounds &bbx_merged) {
 	bbx_merged.min_x = DBL_MAX;
 	bbx_merged.min_y = DBL_MAX;
 	bbx_merged.min_z = DBL_MAX;
@@ -321,8 +282,7 @@ void merge_bbx(std::vector<Bounds> &bbxs, Bounds &bbx_merged)
 	bbx_merged.max_y = -DBL_MAX;
 	bbx_merged.max_z = -DBL_MAX;
 
-	for (int i = 0; i < bbxs.size(); i++)
-	{
+	for (size_t i = 0u; i < bbxs.size(); i++) {
 		bbx_merged.min_x = std::min(bbx_merged.min_x, bbxs[i].min_x);
 		bbx_merged.min_y = std::min(bbx_merged.min_y, bbxs[i].min_y);
 		bbx_merged.min_z = std::min(bbx_merged.min_z, bbxs[i].min_z);
