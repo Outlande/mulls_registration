@@ -161,7 +161,7 @@ bool MullsRegistration::fast_ground_filter(const typename pcl::PointCloud<PointT
 
 	Bounds bounds;
 	CenterPoint center_pt;
-	this->get_cloud_bbx_cpt(cloud_in, bounds, center_pt); //Inherited from its parent class, use this->
+	get_cloud_bbx_cpt(cloud_in, bounds, center_pt); //Inherited from its parent class, use this->
 
 	//Construct Grid
 	int row, col, num_grid;
@@ -709,7 +709,7 @@ void MullsRegistration::update_parameters_self_adaptive(int &gf_down_rate_ground
 }
 
 
-bool MullsRegistration::ExtractSemanticPts(cloudblock_Ptr in_block,
+bool MullsRegistration::ExtractSemanticPts(CloudBlockPtr in_block,
 							  float vf_downsample_resolution, float gf_grid_resolution,
 							  float gf_max_grid_height_diff, float gf_neighbor_height_diff, float gf_max_ground_height,
 							  int &gf_down_rate_ground, int &gf_downsample_rate_nonground,

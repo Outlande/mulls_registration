@@ -16,7 +16,7 @@
 
 #include <vector>
 
-#include "utility.hpp"
+#include "util.hpp"
 
 namespace lo
 {

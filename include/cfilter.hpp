@@ -22,14 +22,14 @@
 #include <iostream>
 #include <cfloat>
 
-#include "utility.hpp"
+#include "util.hpp"
 #include "cprocessing.hpp"
 #include "pca.hpp"
 
 namespace lo
 {
 template <typename PointT>
-class CFilter : public CloudUtility<PointT>
+class CFilter
 {
   public:
 	struct idpair_t
@@ -1545,7 +1545,7 @@ class CFilter : public CloudUtility<PointT>
 
 		Bounds bounds;
 		CenterPoint center_pt;
-		this->get_cloud_bbx_cpt(cloud_in, bounds, center_pt); //Inherited from its parent class, use this->
+		get_cloud_bbx_cpt(cloud_in, bounds, center_pt); //Inherited from its parent class, use this->
 
 		//Construct Grid
 		int row, col, num_grid;
@@ -1704,7 +1704,7 @@ class CFilter : public CloudUtility<PointT>
 
 		Bounds bounds;
 		CenterPoint center_pt;
-		this->get_cloud_bbx_cpt(cloud_in, bounds, center_pt); //Inherited from its parent class, use this->
+		get_cloud_bbx_cpt(cloud_in, bounds, center_pt); //Inherited from its parent class, use this->
 
 		//Construct Grid
 		int row, col, num_grid;
@@ -2292,7 +2292,7 @@ class CFilter : public CloudUtility<PointT>
 	//Used in lidar odometry test
 	//main entrance to geometric feature points extraction module
 	//TODO: clear deprecated parameters
-	bool extract_semantic_pts(cloudblock_Ptr in_block,
+	bool extract_semantic_pts(CloudBlockPtr in_block,
 							  float vf_downsample_resolution, float gf_grid_resolution,
 							  float gf_max_grid_height_diff, float gf_neighbor_height_diff, float gf_max_ground_height,
 							  int &gf_down_rate_ground, int &gf_downsample_rate_nonground,
@@ -2445,7 +2445,7 @@ class CFilter : public CloudUtility<PointT>
 
 	//Only works on Semantic KITTI dataset (Deprecated)
 	//http://semantic-kitti.org/dataset.html
-	bool extract_semantic_pts_from_mask(cloudblock_Ptr in_block, float vf_downsample_resolution,
+	bool extract_semantic_pts_from_mask(CloudBlockPtr in_block, float vf_downsample_resolution,
 										int ground_down_down_rate, int facade_down_down_rate,
 										int pillar_down_down_rate, int beam_down_down_rate)
 	{
@@ -2505,7 +2505,7 @@ class CFilter : public CloudUtility<PointT>
 
 	//Only works on Semantic KITTI dataset (Deprecated)
 	//http://semantic-kitti.org/dataset.html
-	void filter_with_semantic_mask(cloudblock_Ptr in_block, const std::string mask_feature_type = "000000")
+	void filter_with_semantic_mask(CloudBlockPtr in_block, const std::string mask_feature_type = "000000")
 	{
 		float labeled_radius = 45.0;
 
@@ -2675,8 +2675,8 @@ class CFilter : public CloudUtility<PointT>
 							 float cross_section_width = 2.0)
 	{
 		CenterPoint cp_S, cp_T;
-		this->get_cloud_cpt(cloud_S, cp_S);
-		this->get_cloud_cpt(cloud_T, cp_T);
+		get_cloud_cpt(cloud_S, cp_S);
+		get_cloud_cpt(cloud_T, cp_T);
 
 		Bounds cross_section_x, cross_section_y;
 		cross_section_x.inf_xyz();
@@ -2757,7 +2757,7 @@ class CFilter : public CloudUtility<PointT>
 		if (shift_or_not)
 		{
 			CenterPoint cpt;
-			this->get_cloud_cpt(cloud, cpt);
+			get_cloud_cpt(cloud, cpt);
 			shift_x = cpt.x;
 			shift_y = cpt.y;
 		}

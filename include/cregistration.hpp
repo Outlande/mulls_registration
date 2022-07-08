@@ -44,7 +44,7 @@
 //#include <unsupported/Eigen/MatrixFunctions>
 
 #include "cfilter.hpp"
-#include "utility.hpp"
+#include "util.hpp"
 #include "pca.hpp"
 
 namespace lo
@@ -69,7 +69,7 @@ enum DistMetricType
 };
 
 template <typename PointT>
-class CRegistration : public CloudUtility<PointT>
+class CRegistration
 {
   public:
 	//General implement of icp registration algorithm in pcl (baseline method)
@@ -830,8 +830,8 @@ class CRegistration : public CloudUtility<PointT>
 	}
 
 	//determine which one is the source point cloud for registration (according to the number of points)
-	bool determine_source_target_cloud(cloudblock_Ptr &block_1, cloudblock_Ptr &block_2, cloudblock_Ptr &block_sc, cloudblock_Ptr &block_tc,
-									   constraint_t &registration_cons)
+	bool determine_source_target_cloud(CloudBlockPtr &block_1, CloudBlockPtr &block_2, CloudBlockPtr &block_sc, CloudBlockPtr &block_tc,
+									   Constraint &registration_cons)
 	{
 		if (block_1->down_feature_point_num > block_2->down_feature_point_num)
 		{
@@ -848,7 +848,7 @@ class CRegistration : public CloudUtility<PointT>
 		return 1;
 	}
 
-	bool determine_source_target_cloud(const cloudblock_Ptr &block_1, const cloudblock_Ptr &block_2, constraint_t &registration_cons)
+	bool determine_source_target_cloud(const CloudBlockPtr &block_1, const CloudBlockPtr &block_2, Constraint &registration_cons)
 	{
 		if (block_1->down_feature_point_num > block_2->down_feature_point_num)
 		{
@@ -865,7 +865,7 @@ class CRegistration : public CloudUtility<PointT>
 
 	//Target point cloud: block1
 	//Source point cloud: block2
-	bool assign_source_target_cloud(const cloudblock_Ptr &block_1, const cloudblock_Ptr &block_2, constraint_t &registration_cons)
+	bool assign_source_target_cloud(const CloudBlockPtr &block_1, const CloudBlockPtr &block_2, Constraint &registration_cons)
 	{
 		registration_cons.block1 = block_1; //target
 		registration_cons.block2 = block_2; //source
@@ -873,7 +873,7 @@ class CRegistration : public CloudUtility<PointT>
 	}
 
 	//interface for the implement of basic icp algorithm using pcl
-	int pcl_icp(constraint_t &registration_cons,
+	int pcl_icp(Constraint &registration_cons,
 				int max_iter_num, float dis_thre_unit,
 				DistMetricType metrics, CorresEstimationType ce, TransformEstimationType te,
 				bool use_reciprocal_correspondence, bool use_trimmed_rejector, float neighbor_radius = 2.0,
@@ -898,17 +898,17 @@ class CRegistration : public CloudUtility<PointT>
 		{
 			//Transform the Source pointcloud
 			pcl::transformPointCloudWithNormals(*cloud_s_down, *cloud_s_guess, initial_guess);
-			cfilter.get_cloud_bbx(cloud_s_guess, source_guess_bbx);
-			cfilter.get_intersection_bbx(registration_cons.block1->local_bound, source_guess_bbx, intersection_bbx);
+			get_cloud_bbx(cloud_s_guess, source_guess_bbx);
+			get_intersection_bbx(registration_cons.block1->local_bound, source_guess_bbx, intersection_bbx);
 			LOG(INFO) << "Apply initial guess transformation\n"
 					  << initial_guess;
 			apply_source_initial_guess = true;
 		}
 		else
-			cfilter.get_intersection_bbx(registration_cons.block1->local_bound, registration_cons.block2->local_bound, intersection_bbx);
+			get_intersection_bbx(registration_cons.block1->local_bound, registration_cons.block2->local_bound, intersection_bbx);
 
 		if (apply_intersection_filter)
-			cfilter.get_cloud_pair_intersection(intersection_bbx, cloud_t_down, cloud_s_guess);
+			get_cloud_pair_intersection(intersection_bbx, cloud_t_down, cloud_s_guess);
 
 		Eigen::Matrix4d Trans_t_sg;
 		double fitness_score;
@@ -949,7 +949,7 @@ class CRegistration : public CloudUtility<PointT>
 	//4.Update the Source Point Cloud and keep iterating
 	//5.Till converge, Output the 4*4 final transformation matrix and the 6*6 information matrix
 	//TODO polish the codes --> delete some unnecssary codes and also encapsulate some codes in private functions
-	int mm_lls_icp(constraint_t &registration_cons, // cblock_1 (target point cloud), cblock_2 (source point cloud)
+	int mm_lls_icp(Constraint &registration_cons, // cblock_1 (target point cloud), cblock_2 (source point cloud)
 				   int max_iter_num = 20, float dis_thre_unit = 1.5,
 				   float converge_translation = 0.002, float converge_rotation_d = 0.01,
 				   float dis_thre_min = 0.4, float dis_thre_update_rate = 1.1, std::string used_feature_type = "111110",
@@ -1278,7 +1278,7 @@ class CRegistration : public CloudUtility<PointT>
 	}
 
 	// This is for the comparison between LeGO-LOAM , which used the two step LM. We'd like to try the two step LLS for the same task
-	bool lls_icp_3dof_ground(constraint_t &registration_cons, int max_iter_num = 20, float dis_thre_unit = 1.5, float converge_translation = 0.002,
+	bool lls_icp_3dof_ground(Constraint &registration_cons, int max_iter_num = 20, float dis_thre_unit = 1.5, float converge_translation = 0.002,
 							 float converge_rotation_d = 0.01, float dis_thre_min = 0.4, float dis_thre_update_rate = 1.1, std::string weight_strategy = "1111",
 							 Eigen::Matrix4d initial_guess = Eigen::Matrix4d::Identity(), bool keep_less_source_points = false, float max_bearable_rotation_d = 10.0)
 	{
@@ -1419,13 +1419,13 @@ class CRegistration : public CloudUtility<PointT>
 		return process_code;
 	}
 
-	bool mm_lls_icp_4dof_global(constraint_t &registration_con, float heading_step_d,
+	bool mm_lls_icp_4dof_global(Constraint &registration_con, float heading_step_d,
 								int max_iter_num = 20, float dis_thre_unit = 1.5, float converge_translation = 0.005, float converge_rotation_d = 0.05,
 								float dis_thre_min = 0.5, float dis_thre_update_rate = 1.05, float max_bearable_rotation_d = 15.0)
 	{
 
-		cloudblock_t rot_block2; //rotated block2
-		constraint_t rot_con;
+		CloudBlock rot_block2; //rotated block2
+		Constraint rot_con;
 		float current_best_sigma = FLT_MAX;
 		float current_best_score = 0; //score =  confidence / sigma, (the larger, the better)
 		float current_best_heading_d;
@@ -2684,7 +2684,7 @@ class CRegistration : public CloudUtility<PointT>
 		return 1;
 	}
 
-	void apply_cloudclock_cp_local_shift(cloudblock_Ptr &block, float shift_x, float shift_y, float shift_z)
+	void apply_cloudclock_cp_local_shift(CloudBlockPtr &block, float shift_x, float shift_y, float shift_z)
 	{
 		if (block->station_position_available)
 		{
@@ -2729,7 +2729,7 @@ class CRegistration : public CloudUtility<PointT>
 		return true;
 	}
 
-	bool intersection_filter( constraint_t &registration_cons,
+	bool intersection_filter( Constraint &registration_cons,
 							  typename pcl::PointCloud<PointT>::Ptr &pc_ground_tc,
 							  typename pcl::PointCloud<PointT>::Ptr &pc_pillar_tc,
 							  typename pcl::PointCloud<PointT>::Ptr &pc_beam_tc,
@@ -2747,11 +2747,11 @@ class CRegistration : public CloudUtility<PointT>
 		CFilter<PointT> cfilter;
 		Bounds intersection_bbx, source_init_guess_bbx_merged;
 		std::vector<Bounds> source_init_guess_bbxs(3);
-		cfilter.get_cloud_bbx(pc_ground_sc, source_init_guess_bbxs[0]);
-		cfilter.get_cloud_bbx(pc_pillar_sc, source_init_guess_bbxs[1]);
-		cfilter.get_cloud_bbx(pc_facade_sc, source_init_guess_bbxs[2]);
-		cfilter.merge_bbx(source_init_guess_bbxs, source_init_guess_bbx_merged);
-		cfilter.get_intersection_bbx(registration_cons.block1->local_bound, source_init_guess_bbx_merged, intersection_bbx, bbx_pad);
+		get_cloud_bbx(pc_ground_sc, source_init_guess_bbxs[0]);
+		get_cloud_bbx(pc_pillar_sc, source_init_guess_bbxs[1]);
+		get_cloud_bbx(pc_facade_sc, source_init_guess_bbxs[2]);
+		merge_bbx(source_init_guess_bbxs, source_init_guess_bbx_merged);
+		get_intersection_bbx(registration_cons.block1->local_bound, source_init_guess_bbx_merged, intersection_bbx, bbx_pad);
 		cfilter.get_cloud_pair_intersection(intersection_bbx,
 											pc_ground_tc, pc_pillar_tc, pc_beam_tc, pc_facade_tc, pc_roof_tc, pc_vertex_tc,
 											pc_ground_sc, pc_pillar_sc, pc_beam_sc, pc_facade_sc, pc_roof_sc, pc_vertex_sc);

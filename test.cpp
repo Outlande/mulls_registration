@@ -1,6 +1,6 @@
 #include "cfilter.hpp"
 #include "cregistration.hpp"
-#include "utility.hpp"
+#include "util.hpp"
 
 #include <glog/logging.h>
 #include <gflags/gflags.h>
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
     CFilter<MullsPoint> cfilter;
     CRegistration<MullsPoint> creg;
 
-    cloudblock_Ptr cblock_1(new cloudblock_t()), cblock_2(new cloudblock_t());
+    CloudBlockPtr cblock_1(new CloudBlock()), cblock_2(new CloudBlock());
     cblock_1->filename = filename1;
     cblock_2->filename = filename2;
 
@@ -158,7 +158,7 @@ int main(int argc, char **argv)
     }
 
     //Registration
-    constraint_t reg_con;
+    Constraint reg_con;
 
     //Assign target (cblock1) and source (cblock2) point cloud for registration
     creg.determine_source_target_cloud(cblock_1, cblock_2, reg_con);

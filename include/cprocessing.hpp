@@ -20,7 +20,7 @@
 #include <pcl/ModelCoefficients.h>
 #include <pcl/filters/project_inliers.h>
 
-#include "utility.hpp"
+#include "util.hpp"
 
 using namespace std;
 using namespace Eigen;
@@ -29,7 +29,7 @@ namespace lo
 {
 
 template <typename PointT>
-class CProceesing : public CloudUtility<PointT>
+class CProceesing
 {
 public:
 	bool ground_filter_pmf(const typename pcl::PointCloud<PointT>::Ptr &cloud, typename pcl::PointCloud<PointT>::Ptr &gcloud,
