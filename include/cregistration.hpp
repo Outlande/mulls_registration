@@ -41,13 +41,16 @@
 #include <teaser/certification.h>
 #endif
 
-//#include <unsupported/Eigen/MatrixFunctions>
+#include <chrono>
+#include <limits>
+#include <time.h>
 
 #include "cfilter.hpp"
-#include "util.hpp"
+#include "mulls_util.h"
 #include "pca.hpp"
+#include <glog/logging.h>
 
-namespace lo
+namespace mulls
 {
 
 enum TransformEstimationType
@@ -3217,6 +3220,6 @@ class CRegistration
 	}
 };
 
-} // namespace lo
+} // namespace mulls
 
 #endif //_INCLUDE_COMMON_REG_HPP

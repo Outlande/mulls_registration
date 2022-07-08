@@ -66,7 +66,7 @@ set(SRC_LIST
   include/cprocessing.hpp
   include/cregistration.hpp
   include/pca.hpp
-  include/util.hpp
+  src/mulls_util.cpp
   )
 
 ########################

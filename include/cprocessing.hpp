@@ -20,12 +20,13 @@
 #include <pcl/ModelCoefficients.h>
 #include <pcl/filters/project_inliers.h>
 
-#include "util.hpp"
+#include "mulls_util.h"
+#include <glog/logging.h>
 
 using namespace std;
 using namespace Eigen;
 
-namespace lo
+namespace mulls
 {
 
 template <typename PointT>
@@ -278,5 +279,5 @@ public:
 protected:
 private:
 };
-} // namespace lo
+} // namespace mulls
 #endif //_INCLUDE_CLOUD_PROCESSING_HPP

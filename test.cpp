@@ -1,6 +1,6 @@
 #include "cfilter.hpp"
 #include "cregistration.hpp"
-#include "util.hpp"
+#include "mulls_util.h"
 
 #include <glog/logging.h>
 #include <gflags/gflags.h>
@@ -8,7 +8,7 @@
 #include <pcl/visualization/common/common.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <boost/thread/thread.hpp>
-using namespace lo;
+using namespace mulls;
 
 //static void CheckCudaErrorAux(const char *, unsigned, const char *, cudaError_t);
 //#define CUDA_CHECK(value) CheckCudaErrorAux(__FILE__, __LINE__, #value, value)

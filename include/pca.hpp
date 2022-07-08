@@ -1,10 +1,3 @@
-//
-// This file is used for the  Principle Component Analysis (PCA) and related feature calculation of Point Cloud.
-// Dependent 3rd Libs: PCL (>1.7)
-// By Yue Pan et al.
-
-//add cuda parallel computation here
-
 #ifndef _INCLUDE_PCA_HPP_
 #define _INCLUDE_PCA_HPP_
 
@@ -13,12 +6,16 @@
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/common/pca.h>
+#include <glog/logging.h>
+#include <chrono>
+#include <limits>
+#include <time.h>
 
 #include <vector>
 
-#include "util.hpp"
+#include "mulls_util.h"
 
-namespace lo
+namespace mulls
 {
 struct eigenvalue_t // Eigen Value ,lamada1 > lamada2 > lamada3;
 {
@@ -475,5 +472,5 @@ class PrincipleComponentAnalysis
 	}
 };
 
-} // namespace lo
+} // namespace mulls
 #endif //_INCLUDE_PCA_HPP_

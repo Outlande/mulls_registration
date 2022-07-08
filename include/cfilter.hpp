@@ -12,21 +12,19 @@
 #include <pcl/filters/normal_space.h>
 #include <pcl/filters/random_sample.h>
 
-#if OPENCV_ON
-//opencv
-#include <opencv2/opencv.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#endif
-
 #include <vector>
 #include <iostream>
 #include <cfloat>
 
-#include "util.hpp"
+#include "mulls_util.h"
 #include "cprocessing.hpp"
 #include "pca.hpp"
+#include <glog/logging.h>
+#include <chrono>
+#include <limits>
+#include <time.h>
 
-namespace lo
+namespace mulls
 {
 template <typename PointT>
 class CFilter
@@ -2791,6 +2789,6 @@ class CFilter
 #endif
 };
 
-} // namespace lo
+} // namespace mulls
 
 #endif //_INCLUDE_FILTER_HPP
