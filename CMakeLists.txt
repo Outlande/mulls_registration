@@ -62,6 +62,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # source folder
 set(SRC_LIST
+  src/mulls_registration.cpp
   src/mulls_calculate.cpp
   src/mulls_filter.cpp
   src/mulls_util.cpp
@@ -87,4 +88,3 @@ set(DEP_LIBS ${DEP_LIBS} teaserpp::teaser_registration teaserpp::teaser_io)
 
 add_executable(test ${PROJECT_SOURCE_DIR}/test.cpp ${SRC_LIST})
 target_link_libraries(test ${DEP_LIBS})
-

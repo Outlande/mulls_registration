@@ -207,9 +207,6 @@ struct CloudBlock
 
 	Matrix6d information_matrix_to_next;
 
-	std::string filename;			//full path of the original point cloud file
-	std::string filenmae_processed; //full path of the processed point cloud file
-
 	//Raw point cloud
 	pcTPtr pc_raw;
 

@@ -1,5 +1,5 @@
-#ifndef _INCLUDE_MULLS_REG_HPP
-#define _INCLUDE_MULLS_REG_HPP
+#ifndef _INCLUDE_MULLS_CAL_H
+#define _INCLUDE_MULLS_CAL_H
 
 #include <math.h>
 
@@ -48,6 +48,8 @@ namespace mulls
 class MullsCalculate
 {
   public:
+	MullsCalculate() {};
+	~MullsCalculate() {};
 	//brief: Compute fpfh_feature
 	void compute_fpfh_feature(const pcl::PointCloud<MullsPoint>::Ptr &input_cloud,
 							  fpfhPtr &cloud_fpfh, float search_radius);
@@ -74,7 +76,8 @@ class MullsCalculate
 						  const pcl::PointCloud<MullsPoint>::Ptr &source_pts,
 						  Eigen::Matrix4d &tran_mat, float noise_bound = 0.2, int min_inlier_num = 8);
 
-	bool determine_source_target_cloud(const CloudBlockPtr &block_1, const CloudBlockPtr &block_2, Constraint &registration_cons);
+	bool determine_target_source_cloud(const CloudBlockPtr &target_block,
+									   const CloudBlockPtr &source_block, Constraint &registration_cons);
 
 	//--------------------------------------------------------------------------------------------------------------------------//
 	//Multi-metrics Linear Least Square ICP (MULLS-ICP)
@@ -260,4 +263,4 @@ class MullsCalculate
 
 } // namespace mulls
 
-#endif //_INCLUDE_MULLS_REG_HPP
+#endif //_INCLUDE_MULLS_CAL_H

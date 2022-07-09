@@ -321,15 +321,11 @@ int MullsCalculate::coarse_reg_teaser(const pcl::PointCloud<MullsPoint>::Ptr &ta
 	return (-1);
 }
 
-bool MullsCalculate::determine_source_target_cloud(const CloudBlockPtr &block_1, const CloudBlockPtr &block_2, 
-                                                      Constraint &registration_cons) {
-	if (block_1->down_feature_point_num > block_2->down_feature_point_num) {
-		registration_cons.block1 = block_1;
-		registration_cons.block2 = block_2;
-	} else {
-		registration_cons.block1 = block_2;
-		registration_cons.block2 = block_1;
-	}
+bool MullsCalculate::determine_target_source_cloud(const CloudBlockPtr &target_block,
+												   const CloudBlockPtr &source_block,
+                                                   Constraint &registration_cons) {
+	registration_cons.block1 = target_block;
+	registration_cons.block2 = source_block;
 	return true;
 }
 

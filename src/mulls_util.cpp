@@ -113,7 +113,6 @@ void CloudBlock::clone_metadata(const CloudBlock &in_cblock) {
 	pose_optimized = in_cblock.pose_optimized;
 	unique_id = in_cblock.unique_id;
 	id_in_strip = in_cblock.id_in_strip;
-	filename = in_cblock.filename;
 }
 
 void CloudBlock::append_feature(const CloudBlock &in_cblock, bool append_down, std::string used_feature_type) {

@@ -2,69 +2,6 @@
 
 namespace mulls
 {
-bool MullsFilter::voxel_downsample(const pcl::PointCloud<MullsPoint>::Ptr &cloud_in, pcl::PointCloud<MullsPoint>::Ptr &cloud_out, float voxel_size) {
-	//If set the downsampling_radius as 0 to disable the downsampling in order to save time for
-	if (voxel_size < 0.001) {
-		cloud_out = cloud_in;
-		return false;
-	}
-
-	float inverse_voxel_size = 1.0f / voxel_size;
-
-	Eigen::Vector4f min_p, max_p;
-	pcl::getMinMax3D(*cloud_in, min_p, max_p);
-
-	Eigen::Vector4f gap_p; //boundingbox gap;
-	gap_p = max_p - min_p;
-
-	unsigned long long max_vx = ceil(gap_p.coeff(0) * inverse_voxel_size) + 1;
-	unsigned long long max_vy = ceil(gap_p.coeff(1) * inverse_voxel_size) + 1;
-	unsigned long long max_vz = ceil(gap_p.coeff(2) * inverse_voxel_size) + 1;
-
-	if (max_vx * max_vy * max_vz >= std::numeric_limits<unsigned long long>::max()) {
-		LOG(WARNING) << "Filtering Failed: The number of box exceed the limit.";
-		return false;
-	}
-
-	unsigned long long mul_vx = max_vy * max_vz;
-	unsigned long long mul_vy = max_vz;
-	unsigned long long mul_vz = 1;
-
-	std::vector<idpair_t> id_pairs(cloud_in->points.size());
-	int i;
-//unsigned int idx = 0;
-#pragma omp parallel for private(i) //Multi-thread
-	for (i = 0; i < int(cloud_in->points.size()); i++)
-	{
-		unsigned long long vx = floor((cloud_in->points[i].x - min_p.coeff(0)) * inverse_voxel_size);
-		unsigned long long vy = floor((cloud_in->points[i].y - min_p.coeff(1)) * inverse_voxel_size);
-		unsigned long long vz = floor((cloud_in->points[i].z - min_p.coeff(2)) * inverse_voxel_size);
-
-		unsigned long long voxel_idx = vx * mul_vx + vy * mul_vy + vz * mul_vz;
-		idpair_t pair;
-		pair.idx = i;
-		pair.voxel_idx = voxel_idx;
-		//id_pairs.push_back(pair);
-		id_pairs[i] = pair;
-	}
-
-	//Do sorting
-	std::sort(id_pairs.begin(), id_pairs.end());
-	size_t begin_id = 0;
-	while (begin_id < id_pairs.size())
-	{
-		cloud_out->push_back(cloud_in->points[id_pairs[begin_id].idx]);
-
-		size_t compare_id = begin_id + 1;
-		while (compare_id < id_pairs.size() && id_pairs[begin_id].voxel_idx == id_pairs[compare_id].voxel_idx)
-			compare_id++;
-		begin_id = compare_id;
-	}
-	//free the memory
-	std::vector<idpair_t>().swap(id_pairs);
-	return true;
-}
-
 bool MullsFilter::xy_normal_balanced_downsample(pcl::PointCloud<MullsPoint>::Ptr &cloud_in_out,
 									            int keep_number_per_sector, int sector_num) {
 	if (cloud_in_out->points.size() <= size_t(keep_number_per_sector))
@@ -898,8 +835,7 @@ bool MullsFilter::classify_nground_pts(pcl::PointCloud<MullsPoint>::Ptr &cloud_i
 }
 
 
-bool MullsFilter::extract_semantic_pts(CloudBlockPtr in_block,
-							           float vf_downsample_resolution, float gf_grid_resolution,
+bool MullsFilter::extract_semantic_pts(CloudBlockPtr in_block, float gf_grid_resolution,
 							           float gf_max_grid_height_diff, float gf_neighbor_height_diff, float gf_max_ground_height,
 							           int &gf_down_rate_ground, int &gf_downsample_rate_nonground,
 							           float pca_neighbor_radius, int pca_neighbor_k,
@@ -908,8 +844,7 @@ bool MullsFilter::extract_semantic_pts(CloudBlockPtr in_block,
 							           int distance_inverse_sampling_method,
 							           float standard_distance,
 							           int estimate_ground_normal_method,
-							           float normal_estimation_radius,
-							           bool use_adpative_parameters, bool apply_scanner_filter, bool extract_curb_or_not,
+							           float normal_estimation_radius, bool apply_scanner_filter, bool extract_curb_or_not,
 							           int extract_vertex_points_method,
 							           int gf_grid_pt_num_thre, int gf_reliable_neighbor_grid_thre,
 							           int gf_down_down_rate_ground, int pca_neighbor_k_min, int pca_down_rate,
@@ -922,8 +857,6 @@ bool MullsFilter::extract_semantic_pts(CloudBlockPtr in_block,
 							           float approx_scanner_height, float underground_thre, float feature_pts_ratio_guess,
 							           bool semantic_assisted, bool apply_roi_filtering, float roi_min_y, float roi_max_y) {
 	//pre-processing
-	//with semantic mask
-	//remove dynamic objects and outliers (underground ghost points) using the semantic mask predicted by neural network
 	if (apply_scanner_filter) {
 		float self_ring_radius = 1.75;
 		float ghost_radius = 20.0;
@@ -932,8 +865,7 @@ bool MullsFilter::extract_semantic_pts(CloudBlockPtr in_block,
 		// filter the point cloud of the back of the vehicle itself and the underground
 		scanner_filter(in_block->pc_raw, self_ring_radius, ghost_radius, z_min, z_min_min);
 	}
-
-	voxel_downsample(in_block->pc_raw, in_block->pc_down, vf_downsample_resolution);
+	in_block->pc_down = in_block->pc_raw;
 
 	random_downsample(in_block->pc_down, in_block->pc_sketch, in_block->pc_down->points.size() / 1024 + 1);
 

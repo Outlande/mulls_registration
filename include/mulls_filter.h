@@ -39,8 +39,9 @@ namespace mulls
 class MullsFilter
 {
   public:
-	bool voxel_downsample(const pcl::PointCloud<MullsPoint>::Ptr &cloud_in, 
-	                      pcl::PointCloud<MullsPoint>::Ptr &cloud_out, float voxel_size);
+	MullsFilter() {};
+
+	~MullsFilter() {};
 
 	bool xy_normal_balanced_downsample(pcl::PointCloud<MullsPoint>::Ptr &cloud_in_out,
 									   int keep_number_per_sector, int sector_num);
@@ -152,8 +153,7 @@ class MullsFilter
 
 	//Used in lidar odometry test
 	//main entrance to geometric feature points extraction module
-	bool extract_semantic_pts(CloudBlockPtr in_block,
-							  float vf_downsample_resolution, float gf_grid_resolution,
+	bool extract_semantic_pts(CloudBlockPtr in_block, float gf_grid_resolution,
 							  float gf_max_grid_height_diff, float gf_neighbor_height_diff, float gf_max_ground_height,
 							  int &gf_down_rate_ground, int &gf_downsample_rate_nonground,
 							  float pca_neighbor_radius, int pca_neighbor_k,
@@ -163,7 +163,7 @@ class MullsFilter
 							  float standard_distance = 15.0,			//the distance where the weight is 1, only useful when distance_inverse_downsample is on
 							  int estimate_ground_normal_method = 3,	//estimate_ground_normal_method, 0: directly use (0,0,1), 1: estimate normal in fix radius neighborhood , 2: estimate normal in k nearest neighborhood, 3: use ransac to estimate plane coeffs in a grid
 							  float normal_estimation_radius = 2.0,		//only when enabled when estimate_ground_normal_method = 1
-							  bool use_adpative_parameters = false, bool apply_scanner_filter = false, bool extract_curb_or_not = false,
+							  bool apply_scanner_filter = false, bool extract_curb_or_not = false,
 							  int extract_vertex_points_method = 2, //use the maximum curvature based keypoints
 							  int gf_grid_pt_num_thre = 8, int gf_reliable_neighbor_grid_thre = 0,
 							  int gf_down_down_rate_ground = 2, int pca_neighbor_k_min = 8, int pca_down_rate = 1,
