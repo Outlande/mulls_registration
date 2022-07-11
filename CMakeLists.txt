@@ -51,12 +51,6 @@ find_package(GLOG REQUIRED QUIET)
 include_directories(${GLOG_INCLUDE_DIRS})
 message("GLOG [OK]:" ${GLOG_INCLUDE_DIRS})
 
-#TEASER++
-find_package(teaserpp REQUIRED QUIET)
-include_directories(${teaserpp_INCLUDE_DIRS})
-message("Teaser++ [OK]")
-add_definitions(-DTEASER_ON)
-
 # include folder
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
@@ -78,8 +72,6 @@ set(DEP_LIBS ${DEP_LIBS} Eigen3::Eigen)
 set(DEP_LIBS ${DEP_LIBS} ${PCL_LIBRARIES})
 set(DEP_LIBS ${DEP_LIBS} ${GFLAGS_LIBRARIES})
 set(DEP_LIBS ${DEP_LIBS} ${GLOG_LIBRARIES})
-#link teaser ++ (optional)
-set(DEP_LIBS ${DEP_LIBS} teaserpp::teaser_registration teaserpp::teaser_io)
 
 ########################
 #   add executables    #

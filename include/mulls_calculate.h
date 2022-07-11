@@ -34,11 +34,6 @@ class MullsCalculate
 						  Eigen::Matrix4d &tran_mat, float noise_bound = 0.2, 
 						  int min_inlier_num = 8, int max_iter_num = 20000);
 
-	//coarse global registration using TEASER ++  (faster and more robust to outlier than RANSAC)
-	int coarse_reg_teaser(const pcl::PointCloud<MullsPoint>::Ptr &target_pts,
-						  const pcl::PointCloud<MullsPoint>::Ptr &source_pts,
-						  Eigen::Matrix4d &tran_mat, float noise_bound = 0.2, int min_inlier_num = 8);
-
 	bool determine_target_source_cloud(const CloudBlockPtr &target_block,
 									   const CloudBlockPtr &source_block, Constraint &registration_cons);
 

@@ -16,12 +16,6 @@
 #include <pcl/registration/transformation_estimation_point_to_plane_weighted.h>
 #include <pcl/registration/transformation_estimation_point_to_plane.h>
 #include <pcl/registration/ia_ransac.h>
-#if TEASER_ON
-//teaser++ (global registration)
-#include <teaser/ply_io.h>
-#include <teaser/registration.h>
-#include <teaser/certification.h>
-#endif
 
 #include "mulls_filter.h"
 #include "mulls_util.h"
@@ -269,65 +263,6 @@ int MullsCalculate::coarse_reg_ransac(const pcl::PointCloud<MullsPoint>::Ptr &ta
 		LOG(WARNING) << "Mulls Coarse RANSAC failed";
 		return (-1);
 	}
-}
-
-//coarse global registration using TEASER ++  (faster and more robust to outlier than RANSAC)
-int MullsCalculate::coarse_reg_teaser(const pcl::PointCloud<MullsPoint>::Ptr &target_pts,
-										 const pcl::PointCloud<MullsPoint>::Ptr &source_pts,
-										 Eigen::Matrix4d &tran_mat, float noise_bound, int min_inlier_num) {
-	int teaser_state = 0; //(failed: -1, successful[need check]: 0, successful[reliable]: 1)
-	CHECK(target_pts->points.size() == source_pts->points.size());
-	if (target_pts->points.size() <= 3) {
-		LOG(WARNING) << "Teaser Correspondences Too Few";
-		return (-1);
-	}
-
-	int N = target_pts->points.size();
-	float min_inlier_ratio = 0.01;
-
-	Eigen::Matrix<double, 3, Eigen::Dynamic> src(3, N);
-	Eigen::Matrix<double, 3, Eigen::Dynamic> tgt(3, N);
-
-	for (int i = 0; i < N; ++i) {
-		src.col(i) << source_pts->points[i].x, source_pts->points[i].y, source_pts->points[i].z;
-		tgt.col(i) << target_pts->points[i].x, target_pts->points[i].y, target_pts->points[i].z;
-	}
-
-	// Run TEASER++ registration
-	// Prepare solver parameters
-	teaser::RobustRegistrationSolver::Params params;
-	params.noise_bound = noise_bound;
-	params.cbar2 = 1.0;
-	params.estimate_scaling = false;
-	params.rotation_max_iterations = 100;
-	params.rotation_gnc_factor = 1.4;
-	params.rotation_estimation_algorithm =
-		teaser::RobustRegistrationSolver::ROTATION_ESTIMATION_ALGORITHM::GNC_TLS;
-	params.use_max_clique = true;
-	params.kcore_heuristic_threshold = 0.5;
-	params.rotation_cost_threshold = 0.005; //1e-6
-
-	// Solve with TEASER++
-	teaser::RobustRegistrationSolver solver(params);
-	solver.solve(src, tgt);
-
-	auto solution = solver.getSolution();
-	std::vector<int> inliers;
-	inliers = solver.getRotationInliers();
-	if (solution.valid && inliers.size() >= size_t(min_inlier_num)) {
-		tran_mat.setIdentity();
-		tran_mat.block<3, 3>(0, 0) = solution.rotation;
-		tran_mat.block<3, 1>(0, 3) = solution.translation;
-
-		if (inliers.size() >= 2 * size_t(min_inlier_num))
-			return (1); //reliable
-		else
-			return (0); //need check
-	} else {
-		LOG(WARNING) << "MULLS coarse Teaser failed";
-		return (-1);
-	}
-	return (-1);
 }
 
 bool MullsCalculate::determine_target_source_cloud(const CloudBlockPtr &target_block,

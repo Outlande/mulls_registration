@@ -47,7 +47,6 @@ void MullsRegistration::SetTargetCloud(pcl::PointCloud<MullsPoint>::Ptr target_c
 void MullsRegistration::Align(Eigen::Matrix4d init_pose) {
     //Extract feature points
     bool global_registration_on = true;
-    bool teaser_on = true;
     mulls_filter_.extract_semantic_pts(target_mulls_, kGfGridResolution, kGfMaxGridHeightDiff,
                                        kGfNeighborHeightDiff, kGfMaxGroundHeight, kGfDownRateGround,
                                        kGfDownsampleRateNonground, kPcaReighborRadius, kPcaNeighborK,
@@ -79,10 +78,7 @@ void MullsRegistration::Align(Eigen::Matrix4d init_pose) {
 
         mulls_cal_.find_feature_correspondence_ncc(reg_con.block1->pc_vertex, reg_con.block2->pc_vertex, target_cor, source_cor,
                                                    false, 3000, false);
-        if(teaser_on)
-            mulls_cal_.coarse_reg_teaser(target_cor, source_cor, init_mat, 4.0 * keypoint_nms_radius);
-        else
-            mulls_cal_.coarse_reg_ransac(target_cor, source_cor, init_mat, 4.0 * keypoint_nms_radius);
+        mulls_cal_.coarse_reg_ransac(target_cor, source_cor, init_mat, 4.0 * keypoint_nms_radius);
     }
 
     mulls_cal_.mm_lls_icp(reg_con, max_iteration, corr_dist_meter, KConvergeTranMeter, KConvergeRatDegree, 0.25 * corr_dist_meter,
