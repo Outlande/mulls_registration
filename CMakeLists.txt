@@ -28,6 +28,7 @@ find_package(Boost REQUIRED COMPONENTS thread)
 find_package(OpenMP REQUIRED)
 include_directories(${OpenMP_FOUND_INCLUDE_DIRS})
 message("OpenMP [OK]:" ${OpenMP_FOUND_INCLUDE_DIRS})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 #Eigen (involved in pcl, not needed)
 find_package(Eigen3 REQUIRED NO_MODULE QUIET)
@@ -66,7 +67,7 @@ set(SRC_LIST
 ########################
 #      link libs       #
 ########################
-set(DEP_LIBS ${DEP_LIBS} Threads::Threads Boost::thread OpenMP::OpenMP_CXX)
+set(DEP_LIBS ${DEP_LIBS} Threads::Threads Boost::thread)
 set(DEP_LIBS ${DEP_LIBS} Eigen3::Eigen)
 #link pcl lib (neccessary)
 set(DEP_LIBS ${DEP_LIBS} ${PCL_LIBRARIES})
@@ -78,5 +79,5 @@ set(DEP_LIBS ${DEP_LIBS} ${GLOG_LIBRARIES})
 ########################
 
 
-add_executable(test ${PROJECT_SOURCE_DIR}/test.cpp ${SRC_LIST})
-target_link_libraries(test ${DEP_LIBS})
+add_executable(test01 ${PROJECT_SOURCE_DIR}/test01.cpp ${SRC_LIST})
+target_link_libraries(test01 ${DEP_LIBS})

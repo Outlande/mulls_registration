@@ -562,7 +562,7 @@ bool MullsCalculate::determine_corres(pcl::PointCloud<MullsPoint>::Ptr &Source_C
 																						//corr_est_ns.determineReciprocalCorrespondences(*Corr);
 		} else {
 			//Nearest Neighbor
-			corr_est.setInputCloud(Source_Cloud);
+			corr_est.setInputSource(Source_Cloud);
 			corr_est.setInputTarget(Target_Cloud);
 			corr_est.setSearchMethodTarget(target_kdtree, true);				   //saving the time of rebuilding kd-tree
 			corr_est.determineCorrespondences(*Corr, filter_dis_times * dis_thre); //base on KDtreeNSearch
