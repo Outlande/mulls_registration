@@ -38,24 +38,24 @@ CloudBlock::CloudBlock(const CloudBlock &in_block, bool clone_feature, bool clon
 }
 
 void CloudBlock::init() {
-	pc_raw = boost::make_shared<pcT>();
-	pc_down = boost::make_shared<pcT>();
-	pc_raw_w = boost::make_shared<pcT>();
-	pc_sketch = boost::make_shared<pcT>();
-	pc_unground = boost::make_shared<pcT>();
+	pc_raw = boost::make_shared<MullsPointCloud>();
+	pc_down = boost::make_shared<MullsPointCloud>();
+	pc_raw_w = boost::make_shared<MullsPointCloud>();
+	pc_sketch = boost::make_shared<MullsPointCloud>();
+	pc_unground = boost::make_shared<MullsPointCloud>();
 
-	pc_ground = boost::make_shared<pcT>();
-	pc_facade = boost::make_shared<pcT>();
-	pc_roof = boost::make_shared<pcT>();
-	pc_pillar = boost::make_shared<pcT>();
-	pc_beam = boost::make_shared<pcT>();
-	pc_vertex = boost::make_shared<pcT>();
+	pc_ground = boost::make_shared<MullsPointCloud>();
+	pc_facade = boost::make_shared<MullsPointCloud>();
+	pc_roof = boost::make_shared<MullsPointCloud>();
+	pc_pillar = boost::make_shared<MullsPointCloud>();
+	pc_beam = boost::make_shared<MullsPointCloud>();
+	pc_vertex = boost::make_shared<MullsPointCloud>();
 
-	pc_ground_down = boost::make_shared<pcT>();
-	pc_facade_down = boost::make_shared<pcT>();
-	pc_roof_down = boost::make_shared<pcT>();
-	pc_pillar_down = boost::make_shared<pcT>();
-	pc_beam_down = boost::make_shared<pcT>();
+	pc_ground_down = boost::make_shared<MullsPointCloud>();
+	pc_facade_down = boost::make_shared<MullsPointCloud>();
+	pc_roof_down = boost::make_shared<MullsPointCloud>();
+	pc_pillar_down = boost::make_shared<MullsPointCloud>();
+	pc_beam_down = boost::make_shared<MullsPointCloud>();
 
 	init_tree();
 	down_feature_point_num = 0;
@@ -72,9 +72,9 @@ void CloudBlock::init_tree() {
 }
 
 void CloudBlock::free_raw_cloud() {
-	pc_raw.reset(new pcT());
-	pc_down.reset(new pcT());
-	pc_unground.reset(new pcT());
+	pc_raw.reset(new MullsPointCloud());
+	pc_down.reset(new MullsPointCloud());
+	pc_unground.reset(new MullsPointCloud());
 }
 
 void CloudBlock::free_tree() {
@@ -89,19 +89,19 @@ void CloudBlock::free_tree() {
 void CloudBlock::free_all() {
 	free_raw_cloud();
 	free_tree();
-	pc_ground.reset(new pcT());
-	pc_facade.reset(new pcT());
-	pc_pillar.reset(new pcT());
-	pc_beam.reset(new pcT());
-	pc_roof.reset(new pcT());
-	pc_vertex.reset(new pcT());
-	pc_ground_down.reset(new pcT());
-	pc_facade_down.reset(new pcT());
-	pc_pillar_down.reset(new pcT());
-	pc_beam_down.reset(new pcT());
-	pc_roof_down.reset(new pcT());
-	pc_sketch.reset(new pcT());
-	pc_raw_w.reset(new pcT());
+	pc_ground.reset(new MullsPointCloud());
+	pc_facade.reset(new MullsPointCloud());
+	pc_pillar.reset(new MullsPointCloud());
+	pc_beam.reset(new MullsPointCloud());
+	pc_roof.reset(new MullsPointCloud());
+	pc_vertex.reset(new MullsPointCloud());
+	pc_ground_down.reset(new MullsPointCloud());
+	pc_facade_down.reset(new MullsPointCloud());
+	pc_pillar_down.reset(new MullsPointCloud());
+	pc_beam_down.reset(new MullsPointCloud());
+	pc_roof_down.reset(new MullsPointCloud());
+	pc_sketch.reset(new MullsPointCloud());
+	pc_raw_w.reset(new MullsPointCloud());
 }
 
 void CloudBlock::clone_metadata(const CloudBlock &in_cblock) {

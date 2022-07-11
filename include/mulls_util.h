@@ -23,7 +23,7 @@ namespace common
 //Select from these two (with/without intensity)
 //mind that 'curvature' here is used as ring number for spining scanner
 typedef pcl::PointXYZINormal MullsPoint;
-typedef pcl::PointCloud<MullsPoint> pcT;
+typedef pcl::PointCloud<MullsPoint> MullsPointCloud;
 typedef pcl::PointCloud<MullsPoint>::Ptr MullsPointCloudPtr;
 
 typedef pcl::search::KdTree<MullsPoint>::Ptr MullsTreePtr;
