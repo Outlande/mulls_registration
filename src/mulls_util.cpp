@@ -145,7 +145,7 @@ void CloudBlock::append_feature(const CloudBlock &in_cblock, bool append_down, s
 	}
 }
 
-void CloudBlock::merge_feature_points(pcTPtr &pc_out, bool merge_down, bool with_out_ground) {
+void CloudBlock::merge_feature_points(MullsPointCloudPtr &pc_out, bool merge_down, bool with_out_ground) {
 	if (!merge_down) {
 		if (!with_out_ground)
 			pc_out->points.insert(pc_out->points.end(), pc_ground->points.begin(), pc_ground->points.end());
@@ -183,19 +183,19 @@ void CloudBlock::transform_feature(const Eigen::Matrix4d &trans_mat, bool transf
 	}
 }
 
-void CloudBlock::clone_cloud(pcTPtr &pc_out, bool get_pc_done) {
+void CloudBlock::clone_cloud(MullsPointCloudPtr &pc_out, bool get_pc_done) {
 	if (get_pc_done)
 		pc_out->points.insert(pc_out->points.end(), pc_down->points.begin(), pc_down->points.end());
 	else
 		pc_out->points.insert(pc_out->points.end(), pc_raw->points.begin(), pc_raw->points.end());
 }
 
-void CloudBlock::clone_feature(pcTPtr &pc_ground_out,
-							   pcTPtr &pc_pillar_out,
-							   pcTPtr &pc_beam_out,
-							   pcTPtr &pc_facade_out,
-							   pcTPtr &pc_roof_out,
-							   pcTPtr &pc_vertex_out, bool get_feature_down) {
+void CloudBlock::clone_feature(MullsPointCloudPtr &pc_ground_out,
+							   MullsPointCloudPtr &pc_pillar_out,
+							   MullsPointCloudPtr &pc_beam_out,
+							   MullsPointCloudPtr &pc_facade_out,
+							   MullsPointCloudPtr &pc_roof_out,
+							   MullsPointCloudPtr &pc_vertex_out, bool get_feature_down) {
 	if (get_feature_down) {
 		*pc_ground_out = *pc_ground_down;
 		*pc_pillar_out = *pc_pillar_down;

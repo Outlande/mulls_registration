@@ -23,11 +23,10 @@ namespace common
 //Select from these two (with/without intensity)
 //mind that 'curvature' here is used as ring number for spining scanner
 typedef pcl::PointXYZINormal MullsPoint;
-
-typedef pcl::PointCloud<MullsPoint>::Ptr pcTPtr;
 typedef pcl::PointCloud<MullsPoint> pcT;
+typedef pcl::PointCloud<MullsPoint>::Ptr MullsPointCloudPtr;
 
-typedef pcl::search::KdTree<MullsPoint>::Ptr pcTreePtr;
+typedef pcl::search::KdTree<MullsPoint>::Ptr MullsTreePtr;
 typedef pcl::search::KdTree<MullsPoint> pcTree;
 
 typedef pcl::PointCloud<pcl::FPFHSignature33>::Ptr fpfhPtr;
@@ -207,39 +206,39 @@ struct CloudBlock
 	Matrix6d information_matrix_to_next;
 
 	//Raw point cloud
-	pcTPtr pc_raw;
+	MullsPointCloudPtr pc_raw;
 
 	//Downsampled point cloud
-	pcTPtr pc_down;
-	pcTPtr pc_sketch; //very sparse point cloud
+	MullsPointCloudPtr pc_down;
+	MullsPointCloudPtr pc_sketch; //very sparse point cloud
 
-	pcTPtr pc_raw_w; //in world coordinate system (for lidar odometry)
+	MullsPointCloudPtr pc_raw_w; //in world coordinate system (for lidar odometry)
 
 	//unground point cloud
-	pcTPtr pc_unground;
+	MullsPointCloudPtr pc_unground;
 
 	// All kinds of geometric feature points (in target scan)
-	pcTPtr pc_ground;
-	pcTPtr pc_facade;
-	pcTPtr pc_roof;
-	pcTPtr pc_pillar;
-	pcTPtr pc_beam;
-	pcTPtr pc_vertex;
+	MullsPointCloudPtr pc_ground;
+	MullsPointCloudPtr pc_facade;
+	MullsPointCloudPtr pc_roof;
+	MullsPointCloudPtr pc_pillar;
+	MullsPointCloudPtr pc_beam;
+	MullsPointCloudPtr pc_vertex;
     
 	//downsampled feature points (in source scan)
-	pcTPtr pc_ground_down;
-	pcTPtr pc_facade_down;
-	pcTPtr pc_roof_down;
-	pcTPtr pc_pillar_down;
-	pcTPtr pc_beam_down;
+	MullsPointCloudPtr pc_ground_down;
+	MullsPointCloudPtr pc_facade_down;
+	MullsPointCloudPtr pc_roof_down;
+	MullsPointCloudPtr pc_pillar_down;
+	MullsPointCloudPtr pc_beam_down;
 
 	//Kdtree of the feature points (denser ones)
-	pcTreePtr tree_ground;
-	pcTreePtr tree_pillar;
-	pcTreePtr tree_beam;
-	pcTreePtr tree_facade;
-	pcTreePtr tree_roof;
-	pcTreePtr tree_vertex;
+	MullsTreePtr tree_ground;
+	MullsTreePtr tree_pillar;
+	MullsTreePtr tree_beam;
+	MullsTreePtr tree_facade;
+	MullsTreePtr tree_roof;
+	MullsTreePtr tree_vertex;
 
 	//actually, it's better to save the indices of feature_points_down instead of saving another feature point cloud
 
@@ -264,18 +263,18 @@ struct CloudBlock
 
 	void append_feature(const CloudBlock &in_cblock, bool append_down, std::string used_feature_type);
 
-	void merge_feature_points(pcTPtr &pc_out, bool merge_down, bool with_out_ground = false);
+	void merge_feature_points(MullsPointCloudPtr &pc_out, bool merge_down, bool with_out_ground = false);
 
 	void transform_feature(const Eigen::Matrix4d &trans_mat, bool transform_down = true, bool transform_undown = true);
 
-	void clone_cloud(pcTPtr &pc_out, bool get_pc_done);
+	void clone_cloud(MullsPointCloudPtr &pc_out, bool get_pc_done);
 
-	void clone_feature(pcTPtr &pc_ground_out,
-					   pcTPtr &pc_pillar_out,
-					   pcTPtr &pc_beam_out,
-					   pcTPtr &pc_facade_out,
-					   pcTPtr &pc_roof_out,
-					   pcTPtr &pc_vertex_out, bool get_feature_down);
+	void clone_feature(MullsPointCloudPtr &pc_ground_out,
+					   MullsPointCloudPtr &pc_pillar_out,
+					   MullsPointCloudPtr &pc_beam_out,
+					   MullsPointCloudPtr &pc_facade_out,
+					   MullsPointCloudPtr &pc_roof_out,
+					   MullsPointCloudPtr &pc_vertex_out, bool get_feature_down);
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
