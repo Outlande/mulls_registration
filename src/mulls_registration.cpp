@@ -1,6 +1,10 @@
 #include "mulls_registration.h"
 
-namespace mulls {
+namespace mapping_framework
+{
+namespace common
+{
+    
 float kGfGridResolution = 2.0; // 2.5
 float kGfMaxGridHeightDiff = 0.25;
 float kGfNeighborHeightDiff = 1.2; // 1.5
@@ -86,4 +90,5 @@ void MullsRegistration::Align(Eigen::Matrix4d init_pose) {
     final_odom_pose_ = reg_con.Trans1_2;
 }
 
-}
+} // namespace common
+} // namespace mappingframework

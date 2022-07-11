@@ -5,7 +5,9 @@
 #include <pcl/common/pca.h>
 
 
-namespace mulls
+namespace mapping_framework
+{
+namespace common
 {
 
 bool PrincipleComponentAnalysis::get_normal_pcar(typename pcl::PointCloud<MullsPoint>::Ptr in_cloud,
@@ -160,4 +162,5 @@ void PrincipleComponentAnalysis::check_normal(pcl::PointCloud<pcl::Normal>::Ptr 
 	}
 }
 
-} // namespace mulls
+} // namespace common
+} // namespace mapping_framework

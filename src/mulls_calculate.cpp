@@ -22,7 +22,9 @@
 #include "pca.h"
 
 
-namespace mulls
+namespace mapping_framework
+{
+namespace common
 {
 void MullsCalculate::compute_fpfh_feature(const pcl::PointCloud<MullsPoint>::Ptr &input_cloud,
 							                 fpfhPtr &cloud_fpfh, float search_radius) {
@@ -1423,4 +1425,5 @@ bool MullsCalculate::intersection_filter(Constraint &registration_cons,
     	return true;
 	}
 
-} // namespace mulls
+} // namespace common
+} // namespace mapping_framework

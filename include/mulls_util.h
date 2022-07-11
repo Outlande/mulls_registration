@@ -15,6 +15,10 @@
 #include <pcl/registration/transformation_estimation_svd.h>
 #include <vector>
 
+namespace mapping_framework
+{
+namespace common
+{
 //TypeDef
 //Select from these two (with/without intensity)
 //mind that 'curvature' here is used as ring number for spining scanner
@@ -32,8 +36,6 @@ typedef pcl::PointCloud<pcl::FPFHSignature33> fpfh;
 typedef Eigen::Matrix<double, 6, 1> Vector6d;
 typedef Eigen::Matrix<double, 6, 6> Matrix6d;
 
-namespace mulls
-{
 
 enum TransformEstimationType
 {
@@ -326,6 +328,7 @@ void get_intersection_bbx(Bounds &bbx_1, Bounds &bbx_2, Bounds &bbx_intersection
 
 void merge_bbx(std::vector<Bounds> &bbxs, Bounds &bbx_merged);
 
-} // namespace mulls
+} // namespace common
+} // namespace mapping_framework
 
 #endif //_INCLUDE_MULLS_UTIL_

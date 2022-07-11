@@ -3,7 +3,9 @@
 
 #include "mulls_util.h"
 
-namespace mulls
+namespace mapping_framework
+{
+namespace common
 {
 
 class PrincipleComponentAnalysis
@@ -60,5 +62,6 @@ class PrincipleComponentAnalysis
 	void check_normal(pcl::PointCloud<pcl::Normal>::Ptr &normals);
 };
 
-} // namespace mulls
+} // namespace common
+} // namespace mapping_framework
 #endif //_INCLUDE_MULLS_PCA_

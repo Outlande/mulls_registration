@@ -5,7 +5,9 @@
 #include "mulls_util.h"
 #include "pca.h"
 
-namespace mulls
+namespace mapping_framework
+{
+namespace common
 {
 
 class MullsCalculate
@@ -219,6 +221,7 @@ class MullsCalculate
 							  float bbx_pad = 1.0);
 };
 
-} // namespace mulls
+} // namespace common
+} // namespace mapping_framework
 
 #endif //_INCLUDE_MULLS_CAL_H

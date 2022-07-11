@@ -5,7 +5,10 @@
 #include "mulls_filter.h"
 #include "mulls_calculate.h"
 
-namespace mulls {
+namespace mapping_framework
+{
+namespace common
+{
 class MullsRegistration
 {
 
@@ -31,6 +34,7 @@ private:
 
     MullsCalculate mulls_cal_;
 };
-}
+}  // namespace common
+}  // namespace mapping_framework
 
 #endif //_INCLUDE_MULLS_REG_H

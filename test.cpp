@@ -9,7 +9,7 @@
 #include <pcl/visualization/common/common.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <boost/thread/thread.hpp>
-using namespace mulls;
+using namespace mapping_framework::common;
 
 void show_register_result(pcl::PointCloud<MullsPoint>::Ptr source_cloud,
                           pcl::PointCloud<MullsPoint>::Ptr target_cloud,

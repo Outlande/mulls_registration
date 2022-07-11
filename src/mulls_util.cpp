@@ -1,6 +1,8 @@
 #include "mulls_util.h"
 
-namespace mulls
+namespace mapping_framework
+{
+namespace common
 {
 
 CloudBlock::CloudBlock() {
@@ -291,4 +293,5 @@ void merge_bbx(std::vector<Bounds> &bbxs, Bounds &bbx_merged) {
 	}
 }
 
-} // namespace mulls
+} // namespace common
+} // namespace mapping_framework

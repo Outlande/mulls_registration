@@ -14,7 +14,9 @@
 #include <pcl/ModelCoefficients.h>
 #include <pcl/filters/project_inliers.h>
 
-namespace mulls
+namespace mapping_framework
+{
+namespace common
 {
 bool MullsFilter::xy_normal_balanced_downsample(pcl::PointCloud<MullsPoint>::Ptr &cloud_in_out,
 									            int keep_number_per_sector, int sector_num) {
@@ -1055,4 +1057,5 @@ bool MullsFilter::get_cloud_pair_intersection(Bounds &intersection_bbx,
 	return true;
 }
 
-} // namespace mulls
+} // namespace common
+} // namespace mapping_framework
