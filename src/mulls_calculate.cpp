@@ -27,7 +27,7 @@ namespace mapping_framework
 namespace common
 {
 void MullsCalculate::compute_fpfh_feature(const pcl::PointCloud<MullsPoint>::Ptr &input_cloud,
-							                 fpfhPtr &cloud_fpfh, float search_radius) {
+							                 MullsFpfhPtr &cloud_fpfh, float search_radius) {
 	// Calculate the Point Normal
 	// Estimate FPFH Feature
 	pcl::FPFHEstimationOMP<MullsPoint, MullsPoint, pcl::FPFHSignature33> est_fpfh;
@@ -45,8 +45,8 @@ double MullsCalculate::coarse_reg_fpfhsac(const pcl::PointCloud<MullsPoint>::Ptr
 											 const pcl::PointCloud<MullsPoint>::Ptr &target_cloud,
 											 pcl::PointCloud<MullsPoint>::Ptr &traned_source,
 											 Eigen::Matrix4d &transformationS2T, float search_radius) {
-	fpfhPtr source_fpfh(new fpfh());
-	fpfhPtr target_fpfh(new fpfh());
+	MullsFpfhPtr source_fpfh(new MullsFpfh());
+	MullsFpfhPtr target_fpfh(new MullsFpfh());
 
 	compute_fpfh_feature(source_cloud, source_fpfh, search_radius);
 	compute_fpfh_feature(target_cloud, target_fpfh, search_radius);

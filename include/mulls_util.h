@@ -27,10 +27,10 @@ typedef pcl::PointCloud<MullsPoint> pcT;
 typedef pcl::PointCloud<MullsPoint>::Ptr MullsPointCloudPtr;
 
 typedef pcl::search::KdTree<MullsPoint>::Ptr MullsTreePtr;
-typedef pcl::search::KdTree<MullsPoint> pcTree;
+typedef pcl::search::KdTree<MullsPoint> MullsTree;
 
-typedef pcl::PointCloud<pcl::FPFHSignature33>::Ptr fpfhPtr;
-typedef pcl::PointCloud<pcl::FPFHSignature33> fpfh;
+typedef pcl::PointCloud<pcl::FPFHSignature33>::Ptr MullsFpfhPtr;
+typedef pcl::PointCloud<pcl::FPFHSignature33> MullsFpfh;
 
 typedef Eigen::Matrix<double, 6, 1> Vector6d;
 typedef Eigen::Matrix<double, 6, 6> Matrix6d;

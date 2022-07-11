@@ -63,12 +63,12 @@ void CloudBlock::init() {
 }
 
 void CloudBlock::init_tree() {
-	tree_ground = boost::make_shared<pcTree>();
-	tree_facade = boost::make_shared<pcTree>();
-	tree_pillar = boost::make_shared<pcTree>();
-	tree_beam = boost::make_shared<pcTree>();
-	tree_roof = boost::make_shared<pcTree>();
-	tree_vertex = boost::make_shared<pcTree>();
+	tree_ground = boost::make_shared<MullsTree>();
+	tree_facade = boost::make_shared<MullsTree>();
+	tree_pillar = boost::make_shared<MullsTree>();
+	tree_beam = boost::make_shared<MullsTree>();
+	tree_roof = boost::make_shared<MullsTree>();
+	tree_vertex = boost::make_shared<MullsTree>();
 }
 
 void CloudBlock::free_raw_cloud() {
@@ -78,12 +78,12 @@ void CloudBlock::free_raw_cloud() {
 }
 
 void CloudBlock::free_tree() {
-	tree_ground.reset(new pcTree());
-	tree_facade.reset(new pcTree());
-	tree_pillar.reset(new pcTree());
-	tree_beam.reset(new pcTree());
-	tree_roof.reset(new pcTree());
-	tree_vertex.reset(new pcTree());
+	tree_ground.reset(new MullsTree());
+	tree_facade.reset(new MullsTree());
+	tree_pillar.reset(new MullsTree());
+	tree_beam.reset(new MullsTree());
+	tree_roof.reset(new MullsTree());
+	tree_vertex.reset(new MullsTree());
 }
 
 void CloudBlock::free_all() {

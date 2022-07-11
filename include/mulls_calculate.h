@@ -17,7 +17,7 @@ class MullsCalculate
 	~MullsCalculate() {};
 	//brief: Compute fpfh_feature
 	void compute_fpfh_feature(const pcl::PointCloud<MullsPoint>::Ptr &input_cloud,
-							  fpfhPtr &cloud_fpfh, float search_radius);
+							  MullsFpfhPtr &cloud_fpfh, float search_radius);
 
 	//brief: Accomplish Coarse registration using FPFH SAC
 	double coarse_reg_fpfhsac(const pcl::PointCloud<MullsPoint>::Ptr &source_cloud,
