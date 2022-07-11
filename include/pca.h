@@ -1,18 +1,6 @@
 #ifndef _INCLUDE_MULLS_PCA_
 #define _INCLUDE_MULLS_PCA_
 
-//pcl
-#include <pcl/features/normal_3d_omp.h>
-#include <pcl/kdtree/kdtree_flann.h>
-#include <pcl/segmentation/extract_clusters.h>
-#include <pcl/common/pca.h>
-#include <glog/logging.h>
-#include <chrono>
-#include <limits>
-#include <time.h>
-
-#include <vector>
-
 #include "mulls_util.h"
 
 namespace mulls

@@ -2,7 +2,8 @@
 #ifndef _INCLUDE_MULLS_UTIL_
 #define _INCLUDE_MULLS_UTIL_
 
-//PCL
+#include <Eigen/Core>
+#include <glog/logging.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/common/common.h>
@@ -12,10 +13,6 @@
 #include <pcl/ModelCoefficients.h>
 #include <pcl/features/fpfh.h>
 #include <pcl/registration/transformation_estimation_svd.h>
-
-//Eigen
-#include <Eigen/Core>
-
 #include <vector>
 
 //TypeDef

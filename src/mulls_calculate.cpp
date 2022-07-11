@@ -1,5 +1,21 @@
 #include "mulls_calculate.h"
 
+#include <math.h>
+#include <pcl/features/fpfh_omp.h>
+#include <pcl/features/normal_3d_omp.h>
+#include <pcl/registration/correspondence_estimation.h>
+#include <pcl/registration/correspondence_estimation_normal_shooting.h>
+#include <pcl/registration/correspondence_rejection_features.h>
+#include <pcl/registration/correspondence_rejection_sample_consensus.h>
+#include <pcl/registration/correspondence_rejection_trimmed.h>
+#include <pcl/registration/correspondence_rejection_distance.h>
+#include <pcl/registration/correspondence_rejection_var_trimmed.h>
+#include <pcl/registration/transformation_estimation_svd.h>
+#include <pcl/registration/transformation_estimation_lm.h>
+#include <pcl/registration/transformation_estimation_point_to_plane_lls_weighted.h>
+#include <pcl/registration/transformation_estimation_point_to_plane_weighted.h>
+#include <pcl/registration/transformation_estimation_point_to_plane.h>
+#include <pcl/registration/ia_ransac.h>
 #if TEASER_ON
 //teaser++ (global registration)
 #include <teaser/ply_io.h>
@@ -7,14 +23,10 @@
 #include <teaser/certification.h>
 #endif
 
-#include <chrono>
-#include <limits>
-#include <time.h>
-
 #include "mulls_filter.h"
 #include "mulls_util.h"
 #include "pca.h"
-#include <glog/logging.h>
+
 
 namespace mulls
 {
@@ -297,10 +309,7 @@ int MullsCalculate::coarse_reg_teaser(const pcl::PointCloud<MullsPoint>::Ptr &ta
 
 	// Solve with TEASER++
 	teaser::RobustRegistrationSolver solver(params);
-	std::chrono::steady_clock::time_point tic = std::chrono::steady_clock::now();
 	solver.solve(src, tgt);
-	std::chrono::steady_clock::time_point toc = std::chrono::steady_clock::now();
-	std::chrono::duration<double> time_used = std::chrono::duration_cast<std::chrono::duration<double>>(toc - tic);
 
 	auto solution = solver.getSolution();
 	std::vector<int> inliers;

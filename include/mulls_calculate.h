@@ -1,46 +1,9 @@
 #ifndef _INCLUDE_MULLS_CAL_H
 #define _INCLUDE_MULLS_CAL_H
 
-#include <math.h>
-
-//pcl
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-#include <pcl/kdtree/kdtree_flann.h>
-#include <pcl/features/fpfh_omp.h>
-#include <pcl/features/normal_3d_omp.h>
-#include <pcl/registration/icp.h>
-#include <pcl/registration/gicp.h>
-#include <pcl/registration/ndt.h>
-#include <pcl/registration/correspondence_estimation.h>
-#include <pcl/registration/correspondence_estimation_normal_shooting.h>
-#include <pcl/registration/correspondence_rejection_features.h>
-#include <pcl/registration/correspondence_rejection_sample_consensus.h>
-#include <pcl/registration/correspondence_rejection_trimmed.h>
-#include <pcl/registration/correspondence_rejection_distance.h>
-#include <pcl/registration/correspondence_rejection_var_trimmed.h>
-#include <pcl/registration/transformation_estimation_svd.h>
-#include <pcl/registration/transformation_estimation_lm.h>
-#include <pcl/registration/transformation_estimation_point_to_plane_lls_weighted.h>
-#include <pcl/registration/transformation_estimation_point_to_plane_weighted.h>
-#include <pcl/registration/transformation_estimation_point_to_plane.h>
-#include <pcl/registration/ia_ransac.h>
-
-#if TEASER_ON
-//teaser++ (global registration)
-#include <teaser/ply_io.h>
-#include <teaser/registration.h>
-#include <teaser/certification.h>
-#endif
-
-#include <chrono>
-#include <limits>
-#include <time.h>
-
 #include "mulls_filter.h"
 #include "mulls_util.h"
 #include "pca.h"
-#include <glog/logging.h>
 
 namespace mulls
 {

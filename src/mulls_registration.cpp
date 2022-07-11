@@ -84,11 +84,6 @@ void MullsRegistration::Align(Eigen::Matrix4d init_pose) {
         else
             mulls_cal_.coarse_reg_ransac(target_cor, source_cor, init_mat, 4.0 * keypoint_nms_radius);
     }
-    std::cout << "init: " << init_mat<<std::endl;
-    std::cout << "init: " << max_iteration<<std::endl;
-    std::cout << "init: " << corr_dist_meter<<std::endl;
-    std::cout << "init: " << KConvergeTranMeter<<std::endl;
-    std::cout << "init: " << KConvergeRatDegree<<std::endl;
 
     mulls_cal_.mm_lls_icp(reg_con, max_iteration, corr_dist_meter, KConvergeTranMeter, KConvergeRatDegree, 0.25 * corr_dist_meter,
                           1.1, "111110", "1101", 1.0, 0.1, 0.1, 0.1, init_mat);

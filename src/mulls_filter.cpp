@@ -1,5 +1,19 @@
 #include "mulls_filter.h"
 
+#include <cfloat>
+#include <pcl/filters/statistical_outlier_removal.h>
+#include <pcl/filters/normal_space.h>
+#include <pcl/filters/random_sample.h>
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/segmentation/progressive_morphological_filter.h>
+#include <pcl/ModelCoefficients.h>
+#include <pcl/sample_consensus/method_types.h>
+#include <pcl/sample_consensus/model_types.h>
+#include <pcl/surface/concave_hull.h>
+#include <pcl/ModelCoefficients.h>
+#include <pcl/filters/project_inliers.h>
+
 namespace mulls
 {
 bool MullsFilter::xy_normal_balanced_downsample(pcl::PointCloud<MullsPoint>::Ptr &cloud_in_out,
